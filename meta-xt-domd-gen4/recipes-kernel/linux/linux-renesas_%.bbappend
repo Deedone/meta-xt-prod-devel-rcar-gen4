@@ -1,8 +1,8 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-RENESAS_BSP_URL = "git://github.com/xen-troops/linux.git"
-BRANCH = "${XT_KERNEL_BRANCH}"
-SRCREV = "${XT_KERNEL_REV}"
+RENESAS_BSP_URL:r8a779f0 = "git://github.com/xen-troops/linux.git"
+BRANCH:r8a779f0 = "${XT_KERNEL_BRANCH}"
+SRCREV:r8a779f0 = "${XT_KERNEL_REV}"
 
 SRC_URI:append = " \
     file://ixgbe.cfg \
