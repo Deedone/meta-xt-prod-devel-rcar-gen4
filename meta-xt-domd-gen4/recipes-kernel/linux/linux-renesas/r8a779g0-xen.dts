@@ -88,6 +88,7 @@
 
 &pciec0 {
 	iommus = <&ipmmu_hc 32>;
+	msi-map = <0x0 &gic_its 0x0 0x1000>;
 	interrupt-map = <0 0 0 1 &gic 0 0 GIC_SPI 449 IRQ_TYPE_LEVEL_HIGH
 					0 0 0 2 &gic 0 0 GIC_SPI 449 IRQ_TYPE_LEVEL_HIGH
 					0 0 0 3 &gic 0 0 GIC_SPI 449 IRQ_TYPE_LEVEL_HIGH
