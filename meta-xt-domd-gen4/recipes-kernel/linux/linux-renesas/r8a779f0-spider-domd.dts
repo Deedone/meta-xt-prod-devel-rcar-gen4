@@ -1,0 +1,14 @@
+#include "r8a779f0-spider.dts"
+
+#include "r8a779f0-domd.dts"
+
+/ {
+	/*
+	 * Remove interrupts-extended node from guest domain
+	 * as it can not be shared by Xen.
+	 */
+	pmu_a76 {
+		/delete-property/interrupts-extended;
+	};
+};
+
