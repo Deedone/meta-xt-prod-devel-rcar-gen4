@@ -27,8 +27,8 @@ common_data:
       url: "git://git.yoctoproject.org/meta-virtualization"
       rev: kirkstone
     - type: git
-      url: "https://github.com/Deedone/meta-xt-common.git"
-      rev: v4h_xt_wip
+      url: "https://github.com/xen-troops/meta-xt-common.git"
+      rev: v0.2.0
 
   # Sources to be used in DomD and DomU
   domd_domu_sources: &DOMD_DOMU_SOURCES
