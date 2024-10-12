@@ -16,3 +16,14 @@ IMAGE_INSTALL += " kernel-module-ixgbe"
 IMAGE_INSTALL += "e2fsprogs"
 
 IMAGE_INSTALL += " kernel-module-gles gles-user-module libdrm"
+
+IMAGE_INSTALL:append = " \
+    xen \
+    xen-tools-devd \
+    xen-tools-scripts-network \
+    xen-tools-scripts-block \
+    xen-tools-xenstore \
+    xen-tools-pcid \
+    xen-network \
+    dnsmasq \
+"
