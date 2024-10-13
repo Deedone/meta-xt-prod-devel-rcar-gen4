@@ -181,7 +181,7 @@ components:
         - "../meta-xt-common/meta-xt-security"
         - "../meta-xt-rcar/meta-xt-gateway/meta-xt-domd-gen4"
         - "../meta-xt-rcar/meta-xt-gateway/meta-xt-domx-gen4"
-        - "../meta-xt-rcar/meta-xt-rcar-gles_common"
+        - "../../layers/meta-xt-gles_common"
         - "../../layers/meta-xt-domd-gen4"
         - "../../layers/meta-xt-domx-gen4"
       target_images:
@@ -226,7 +226,7 @@ components:
         - "../meta-xt-common/meta-xt-security"
         - "../../layers/meta-xt-domx-gen4"
         - "../../layers/meta-xt-domu-gen4"
-        - "../meta-xt-rcar/meta-xt-rcar-gles_common"
+        - "../../layers/meta-xt-gles_common"
       build_target: rcar-image-adas
       target_images:
         - "tmp/deploy/images/%{MACHINE}/Image"
