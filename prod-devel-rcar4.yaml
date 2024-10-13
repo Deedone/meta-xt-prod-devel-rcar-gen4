@@ -85,6 +85,8 @@ common_data:
     - [RENESAS_EXTRA_IMAGE_FEATURES:remove, "tools-profile"]
     - [CORE_IMAGE_EXTRA_INSTALL:remove, "perf"]
     - [MACHINE_FEATURES:append, " gsx"]
+    # this u-boot is S4-specific
+    - [BBMASK:append, " meta-xt-rcar/meta-xt-gateway/meta-xt-domd-gen4/recipes-bsp/u-boot/"]
 
 components:
   dom0:
