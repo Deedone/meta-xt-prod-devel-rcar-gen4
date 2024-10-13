@@ -1,8 +1,8 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-RENESAS_BSP_URL = "git://github.com/renesas-rcar/linux-bsp.git;protocol=https"
-BRANCH = "${RENESAS_BSP_BRANCH}"
-SRCREV = "${RENESAS_BSP_SRCREV}"
+RENESAS_BSP_URL = "git://github.com/Deedone/linux.git;protocol=https"
+RENESAS_BSP_BRANCH = "v5.10.147/rcar-5.2.0.rc17-ualloc"
+SRCREV = "a06ed0a7231b48b0d7671c5fa5eaa4e4205ac470"
 
 SRC_URI:append:r8a779g0 = " \
     file://r8a779g0.cfg \
@@ -15,6 +15,7 @@ SRC_URI:remove:r8a779g0 = " \
 SRC_URI:append = " \
     file://ixgbe.cfg \
     file://multicast_routing.cfg \
+    file://unpopulated_alloc.cfg \
     file://xen-chosen.dtsi;subdir=git/arch/arm64/boot/dts/renesas \
     file://r8a779g0-xen-chosen.dtsi;subdir=git/arch/arm64/boot/dts/renesas \
     file://0001-clk-shmobile-Hide-clock-for-scif3-and-hscif0.patch \
