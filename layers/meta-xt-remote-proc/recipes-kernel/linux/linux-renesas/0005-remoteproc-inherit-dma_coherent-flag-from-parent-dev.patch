@@ -1,0 +1,27 @@
+From beff804340f05bf8c0c8ebac392d0e7d4aa2dfab Mon Sep 17 00:00:00 2001
+From: Valerii Chubar <valerii_chubar@epam.com>
+Date: Fri, 6 Aug 2021 17:25:59 +0300
+Subject: [PATCH 5/5] remoteproc: inherit dma_coherent flag from parent device
+
+Signed-off-by: Valerii Chubar <valerii_chubar@epam.com>
+Signed-off-by: Volodymyr Babchuk <volodymyr_babchuk@epam.com>
+---
+ drivers/remoteproc/remoteproc_core.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
+index d5332fea8c777..9dccd1f592101 100644
+--- a/drivers/remoteproc/remoteproc_core.c
++++ b/drivers/remoteproc/remoteproc_core.c
+@@ -569,6 +569,8 @@ static int rproc_handle_vdev(struct rproc *rproc, struct fw_rsc_vdev *rsc,
+ 
+ 	ret = dma_coerce_mask_and_coherent(&rvdev->dev,
+ 					   dma_get_mask(rproc->dev.parent));
++
++	rvdev->dev.dma_coherent = rproc->dev.parent->dma_coherent;
+ 	if (ret) {
+ 		dev_warn(dev,
+ 			 "Failed to set DMA mask %llx. Trying to continue... %x\n",
+-- 
+2.46.2
+

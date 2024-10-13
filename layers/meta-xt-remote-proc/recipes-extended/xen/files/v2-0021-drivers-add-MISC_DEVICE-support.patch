@@ -1,0 +1,88 @@
+From 9252fd11e82c21f5e5481c44a709db94bdc22a2f Mon Sep 17 00:00:00 2001
+From: Volodymyr Babchuk <volodymyr_babchuk@epam.com>
+Date: Wed, 9 Oct 2024 17:14:36 +0300
+Subject: [PATCH v2 21/23] drivers: add MISC_DEVICE support
+
+Misc. devices are devices that may be used by platform-specific code.
+
+Signed-off-by: Volodymyr Babchuk <volodymyr_babchuk@epam.com>
+---
+ xen/arch/arm/include/asm/device.h |  1 +
+ xen/drivers/passthrough/Makefile  |  1 +
+ xen/drivers/passthrough/misc.c    | 40 +++++++++++++++++++++++++++++++
+ 3 files changed, 42 insertions(+)
+ create mode 100644 xen/drivers/passthrough/misc.c
+
+diff --git a/xen/arch/arm/include/asm/device.h b/xen/arch/arm/include/asm/device.h
+index 086dde13eb..3a779544b9 100644
+--- a/xen/arch/arm/include/asm/device.h
++++ b/xen/arch/arm/include/asm/device.h
+@@ -38,6 +38,7 @@ enum device_class
+     DEVICE_IOMMU,
+     DEVICE_GIC,
+     DEVICE_PCI_HOSTBRIDGE,
++    DEVICE_MISC,
+     /* Use for error */
+     DEVICE_UNKNOWN,
+ };
+diff --git a/xen/drivers/passthrough/Makefile b/xen/drivers/passthrough/Makefile
+index a5efa22714..972cbc1436 100644
+--- a/xen/drivers/passthrough/Makefile
++++ b/xen/drivers/passthrough/Makefile
+@@ -4,6 +4,7 @@ obj-$(CONFIG_X86) += x86/
+ obj-$(CONFIG_ARM) += arm/
+ 
+ obj-y += iommu.o
++obj-y += misc.o
+ obj-$(CONFIG_HAS_PCI) += pci.o
+ obj-$(CONFIG_HAS_DEVICE_TREE) += device_tree.o
+ obj-$(CONFIG_HAS_PCI) += ats.o
+diff --git a/xen/drivers/passthrough/misc.c b/xen/drivers/passthrough/misc.c
+new file mode 100644
+index 0000000000..cf824ac6e2
+--- /dev/null
++++ b/xen/drivers/passthrough/misc.c
+@@ -0,0 +1,40 @@
++/*
++ * Misc. device initialization
++ *
++ * Volodymyr Babchuk <volodymyr_babchuk@epam.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <xen/device_tree.h>
++#include <xen/init.h>
++#include <xen/lib.h>
++#include <xen/errno.h>
++
++#include <asm/device.h>
++
++int __init misc_dev_init(void)
++{
++    struct dt_device_node *np;
++    int rc;
++
++    printk(XENLOG_INFO"Initializing misc. devices\n");
++    dt_for_each_device_node(dt_host, np)
++    {
++        rc = device_init(np, DEVICE_MISC, NULL);
++        if ( rc != -EBADF && rc != -ENODEV )
++            return rc;
++    }
++
++    return 0;
++}
++
++__initcall(misc_dev_init);
+-- 
+2.46.2
+

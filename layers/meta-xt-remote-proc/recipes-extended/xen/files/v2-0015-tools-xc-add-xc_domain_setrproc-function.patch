@@ -1,0 +1,53 @@
+From e102749a14c94ec34c1aa30d373613e0d7e15413 Mon Sep 17 00:00:00 2001
+From: Volodymyr Babchuk <volodymyr_babchuk@epam.com>
+Date: Wed, 31 Mar 2021 23:12:55 +0300
+Subject: [PATCH v2 15/23] tools: xc: add xc_domain_setrproc function
+
+It basically issues XEN_DOMCTL_enable_rproc request to the hypervisor.
+
+Signed-off-by: Volodymyr Babchuk <volodymyr_babchuk@epam.com>
+---
+ tools/include/xenctrl.h     |  3 +++
+ tools/libs/ctrl/xc_domain.c | 12 ++++++++++++
+ 2 files changed, 15 insertions(+)
+
+diff --git a/tools/include/xenctrl.h b/tools/include/xenctrl.h
+index fa77b6b584..d85377c5da 100644
+--- a/tools/include/xenctrl.h
++++ b/tools/include/xenctrl.h
+@@ -2637,6 +2637,9 @@ int xc_livepatch_replace(xc_interface *xch, char *name, uint32_t timeout, uint32
+ int xc_domain_cacheflush(xc_interface *xch, uint32_t domid,
+                          xen_pfn_t start_pfn, xen_pfn_t nr_pfns);
+ 
++int xc_domain_setrproc(xc_interface *xch,
++                       uint32_t domid,
++                       uint32_t chan_id);
+ /* Compat shims */
+ #include "xenctrl_compat.h"
+ 
+diff --git a/tools/libs/ctrl/xc_domain.c b/tools/libs/ctrl/xc_domain.c
+index 342dafc213..9b052b817b 100644
+--- a/tools/libs/ctrl/xc_domain.c
++++ b/tools/libs/ctrl/xc_domain.c
+@@ -2219,6 +2219,18 @@ int xc_domain_soft_reset(xc_interface *xch,
+     domctl.domain = domid;
+     return do_domctl(xch, &domctl);
+ }
++
++int xc_domain_setrproc(xc_interface *xch,
++                       uint32_t domid,
++                       uint32_t chan_id)
++{
++    DECLARE_DOMCTL;
++    domctl.cmd = XEN_DOMCTL_enable_rproc;
++    domctl.domain = domid;
++    domctl.u.enable_rproc.chan_id = chan_id;
++    return do_domctl(xch, &domctl);
++}
++
+ /*
+  * Local variables:
+  * mode: C
+-- 
+2.46.2
+

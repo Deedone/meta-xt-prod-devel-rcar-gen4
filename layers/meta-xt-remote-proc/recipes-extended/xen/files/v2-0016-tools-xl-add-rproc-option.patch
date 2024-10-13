@@ -1,0 +1,82 @@
+From e6802eb782dbb68db034b89a44146663e4dace2e Mon Sep 17 00:00:00 2001
+From: Volodymyr Babchuk <volodymyr_babchuk@epam.com>
+Date: Wed, 31 Mar 2021 23:14:18 +0300
+Subject: [PATCH v2 16/23] tools: xl: add "rproc" option
+
+This options enables virtual rproc interface in Xen and sets the
+channel.
+
+Right now it does not provide device tree entries, so additional
+configuration via partial DTB is needed.
+
+Signed-off-by: Volodymyr Babchuk <volodymyr_babchuk@epam.com>
+---
+ tools/libs/light/libxl_arm.c     | 15 +++++++++++++++
+ tools/libs/light/libxl_types.idl |  1 +
+ tools/xl/xl_parse.c              |  5 +++++
+ 3 files changed, 21 insertions(+)
+
+diff --git a/tools/libs/light/libxl_arm.c b/tools/libs/light/libxl_arm.c
+index 1b96c006f5..4fc2293ded 100644
+--- a/tools/libs/light/libxl_arm.c
++++ b/tools/libs/light/libxl_arm.c
+@@ -89,6 +89,11 @@ int libxl__arch_domain_prepare_config(libxl__gc *gc,
+         vuart_enabled = true;
+     }
+ 
++    if (d_config->b_info.arch_arm.rproc >= 0) {
++        if (nr_spis < (GUEST_MFIS_SPI - 32))
++            nr_spis = (GUEST_MFIS_SPI - 32) + 1;
++    }
++
+     /*
+      * Virtio MMIO params are non-unique across the whole system and must be
+      * initialized for every new guest.
+@@ -1543,6 +1548,16 @@ int libxl__arch_build_dom_finish(libxl__gc *gc,
+ {
+     int rc = 0, ret;
+ 
++    if (info->arch_arm.rproc >=0 ) {
++        ret = xc_domain_setrproc(CTX->xch, dom->guest_domid,
++                                info->arch_arm.rproc);
++        if ( ret < 0) {
++            rc = ERROR_FAIL;
++            LOG(ERROR, "xc_domain_setrproc failed: %d\n", ret);
++            goto out;
++        }
++    }
++
+     if (info->arch_arm.vuart != LIBXL_VUART_TYPE_SBSA_UART) {
+         rc = 0;
+         goto out;
+diff --git a/tools/libs/light/libxl_types.idl b/tools/libs/light/libxl_types.idl
+index cf19dc9f0c..d7b5c0d50d 100644
+--- a/tools/libs/light/libxl_types.idl
++++ b/tools/libs/light/libxl_types.idl
+@@ -657,6 +657,7 @@ libxl_domain_build_info = Struct("domain_build_info",[
+ 
+     ("arch_arm", Struct(None, [("gic_version", libxl_gic_version),
+                                ("vuart", libxl_vuart_type),
++                               ("rproc", integer),
+                               ])),
+     ("arch_x86", Struct(None, [("msr_relaxed", libxl_defbool),
+                               ])),
+diff --git a/tools/xl/xl_parse.c b/tools/xl/xl_parse.c
+index 2c5a78f550..25680fe485 100644
+--- a/tools/xl/xl_parse.c
++++ b/tools/xl/xl_parse.c
+@@ -2833,6 +2833,11 @@ skip_usbdev:
+         }
+     }
+ 
++    if (!xlu_cfg_get_long (config, "rproc", &l, 0))
++        b_info->arch_arm.rproc = l;
++    else
++        b_info->arch_arm.rproc = -1;
++
+     parse_vkb_list(config, d_config);
+ 
+     xlu_cfg_get_defbool(config, "xend_suspend_evtchn_compat",
+-- 
+2.46.2
+

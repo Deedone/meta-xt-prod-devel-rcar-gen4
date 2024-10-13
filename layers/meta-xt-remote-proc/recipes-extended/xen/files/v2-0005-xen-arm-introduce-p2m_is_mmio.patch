@@ -1,0 +1,39 @@
+From 090cf1298610ca5b758006c5608ae14248d66d54 Mon Sep 17 00:00:00 2001
+From: Stefano Stabellini <sstabellini@kernel.org>
+Date: Tue, 6 Aug 2019 16:36:10 -0700
+Subject: [PATCH v2 05/23] xen/arm: introduce p2m_is_mmio
+
+Add a p2m_is_mmio macro for easy checkings.
+
+Signed-off-by: Stefano Stabellini <stefanos@xilinx.com>
+---
+ xen/arch/arm/include/asm/p2m.h | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/xen/arch/arm/include/asm/p2m.h b/xen/arch/arm/include/asm/p2m.h
+index 8cce459b67..d0b655a399 100644
+--- a/xen/arch/arm/include/asm/p2m.h
++++ b/xen/arch/arm/include/asm/p2m.h
+@@ -141,6 +141,11 @@ typedef enum {
+ #define P2M_RAM_TYPES (p2m_to_mask(p2m_ram_rw) |        \
+                        p2m_to_mask(p2m_ram_ro))
+ 
++/* MMIO types */
++#define P2M_MMIO_TYPES (p2m_to_mask(p2m_mmio_direct_dev) | \
++                        p2m_to_mask(p2m_mmio_direct_nc)  | \
++                        p2m_to_mask(p2m_mmio_direct_c))
++
+ /* Grant mapping types, which map to a real frame in another VM */
+ #define P2M_GRANT_TYPES (p2m_to_mask(p2m_grant_map_rw) |  \
+                          p2m_to_mask(p2m_grant_map_ro))
+@@ -155,6 +160,7 @@ typedef enum {
+ #define p2m_is_any_ram(_t) (p2m_to_mask(_t) &                   \
+                             (P2M_RAM_TYPES | P2M_GRANT_TYPES |  \
+                              P2M_FOREIGN_TYPES))
++#define p2m_is_mmio(_t) (p2m_to_mask(_t) & P2M_MMIO_TYPES)
+ 
+ /* All common type definitions should live ahead of this inclusion. */
+ #ifdef _XEN_P2M_COMMON_H
+-- 
+2.46.2
+

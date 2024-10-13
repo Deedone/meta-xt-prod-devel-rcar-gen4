@@ -1,0 +1,385 @@
+From 5094f8a3af2f6350046d64bf056272654a6ef267 Mon Sep 17 00:00:00 2001
+From: Stefano Stabellini <sstabellini@kernel.org>
+Date: Tue, 6 Aug 2019 16:36:13 -0700
+Subject: [PATCH v2 06/23] xen: add a p2mt parameter to map_mmio_regions
+
+Add a p2mt parameter to map_mmio_regions, pass p2m_mmio_direct_dev on
+ARM and p2m_mmio_direct on x86 -- no changes in behavior.
+
+On x86, introduce a macro to strip away the last parameter and rename
+the existing implementation of map_mmio_regions to map_mmio_region.
+Use map_mmio_region in vpci as it is x86-only today.
+
+On ARM, given the similarity between map_mmio_regions after the change
+and map_regions_p2mt, remove un/map_regions_p2mt. Also add an ASSERT to
+check that only p2m_mmio_* types are passed to it.
+
+Also fix the style of the comment on top of map_mmio_regions since we
+are at it.
+
+Signed-off-by: Stefano Stabellini <stefanos@xilinx.com>
+CC: JBeulich@suse.com
+CC: andrew.cooper3@citrix.com
+---
+ xen/arch/arm/acpi/domain_build.c |  4 ++--
+ xen/arch/arm/domain_build.c      |  4 ++--
+ xen/arch/arm/gic-v2.c            |  3 ++-
+ xen/arch/arm/gic-v3-its.c        |  2 +-
+ xen/arch/arm/include/asm/p2m.h   |  5 +++++
+ xen/arch/arm/p2m.c               | 19 ++-----------------
+ xen/arch/arm/platforms/exynos5.c |  6 ++++--
+ xen/arch/arm/platforms/omap5.c   | 12 ++++++++----
+ xen/arch/arm/traps.c             |  2 +-
+ xen/arch/arm/vgic-v2.c           |  3 ++-
+ xen/arch/arm/vgic/vgic-v2.c      |  3 ++-
+ xen/arch/x86/hvm/dom0_build.c    |  2 +-
+ xen/arch/x86/include/asm/p2m.h   |  8 ++++++++
+ xen/arch/x86/mm/p2m.c            |  8 ++++----
+ xen/common/domctl.c              |  7 ++++++-
+ xen/drivers/vpci/header.c        |  3 ++-
+ xen/include/xen/p2m-common.h     | 11 +++++++----
+ 17 files changed, 59 insertions(+), 43 deletions(-)
+
+diff --git a/xen/arch/arm/acpi/domain_build.c b/xen/arch/arm/acpi/domain_build.c
+index bbdc90f92c..0165a63857 100644
+--- a/xen/arch/arm/acpi/domain_build.c
++++ b/xen/arch/arm/acpi/domain_build.c
+@@ -194,7 +194,7 @@ static void __init acpi_map_other_tables(struct domain *d)
+     {
+         addr = acpi_gbl_root_table_list.tables[i].address;
+         size = acpi_gbl_root_table_list.tables[i].length;
+-        res = map_regions_p2mt(d,
++        res = map_mmio_regions(d,
+                                gaddr_to_gfn(addr),
+                                PFN_UP(size),
+                                maddr_to_mfn(addr),
+@@ -548,7 +548,7 @@ int __init prepare_acpi(struct domain *d, struct kernel_info *kinfo)
+     acpi_create_efi_mmap_table(d, &kinfo->mem, tbl_add);
+ 
+     /* Map the EFI and ACPI tables to Dom0 */
+-    rc = map_regions_p2mt(d,
++    rc = map_mmio_regions(d,
+                           gaddr_to_gfn(d->arch.efi_acpi_gpa),
+                           PFN_UP(d->arch.efi_acpi_len),
+                           virt_to_mfn(d->arch.efi_acpi_table),
+diff --git a/xen/arch/arm/domain_build.c b/xen/arch/arm/domain_build.c
+index 9632b1551d..91aa097b73 100644
+--- a/xen/arch/arm/domain_build.c
++++ b/xen/arch/arm/domain_build.c
+@@ -1896,7 +1896,7 @@ int __init map_range_to_domain(const struct dt_device_node *dev,
+ 
+     if ( !mr_data->skip_mapping )
+     {
+-        res = map_regions_p2mt(d,
++        res = map_mmio_regions(d,
+                                gaddr_to_gfn(addr),
+                                PFN_UP(len),
+                                maddr_to_mfn(addr),
+@@ -2513,7 +2513,7 @@ static int __init handle_passthrough_prop(struct kernel_info *kinfo,
+             return res;
+         }
+ 
+-        res = map_regions_p2mt(kinfo->d,
++        res = map_mmio_regions(kinfo->d,
+                                gaddr_to_gfn(gstart),
+                                PFN_DOWN(size),
+                                maddr_to_mfn(mstart),
+diff --git a/xen/arch/arm/gic-v2.c b/xen/arch/arm/gic-v2.c
+index b2adc8ec9a..080741144b 100644
+--- a/xen/arch/arm/gic-v2.c
++++ b/xen/arch/arm/gic-v2.c
+@@ -701,7 +701,8 @@ static int gicv2_map_hwdown_extra_mappings(struct domain *d)
+ 
+         ret = map_mmio_regions(d, gaddr_to_gfn(v2m_data->addr),
+                                PFN_UP(v2m_data->size),
+-                               maddr_to_mfn(v2m_data->addr));
++                               maddr_to_mfn(v2m_data->addr),
++                               p2m_mmio_direct_dev);
+         if ( ret )
+         {
+             printk(XENLOG_ERR "GICv2: Map v2m frame to d%d failed.\n",
+diff --git a/xen/arch/arm/gic-v3-its.c b/xen/arch/arm/gic-v3-its.c
+index e98de1f1f3..ce593a586b 100644
+--- a/xen/arch/arm/gic-v3-its.c
++++ b/xen/arch/arm/gic-v3-its.c
+@@ -371,7 +371,7 @@ int gicv3_its_map_translation_register(struct domain *d)
+ 
+         ret = map_mmio_regions(d, gaddr_to_gfn(its_translation_addr),
+                 PFN_UP(its_translation_size),
+-                maddr_to_mfn(its_translation_addr));
++                maddr_to_mfn(its_translation_addr),  p2m_mmio_direct_dev);
+         if ( ret )
+         {
+             printk(XENLOG_ERR "GICv3: Map ITS translation register d%d failed.\n",
+diff --git a/xen/arch/arm/include/asm/p2m.h b/xen/arch/arm/include/asm/p2m.h
+index d0b655a399..877cd75dda 100644
+--- a/xen/arch/arm/include/asm/p2m.h
++++ b/xen/arch/arm/include/asm/p2m.h
+@@ -306,6 +306,11 @@ int map_dev_mmio_page(struct domain *d, gfn_t gfn, mfn_t mfn);
+ int p2m_insert_mapping(struct domain *d, gfn_t start_gfn, unsigned long nr,
+                        mfn_t mfn, p2m_type_t t);
+ 
++int map_dev_mmio_region(struct domain *d,
++                        gfn_t gfn,
++                        unsigned long nr,
++                        mfn_t mfn);
++
+ int guest_physmap_add_entry(struct domain *d,
+                             gfn_t gfn,
+                             mfn_t mfn,
+diff --git a/xen/arch/arm/p2m.c b/xen/arch/arm/p2m.c
+index 02cf852d4c..78bd05d4d2 100644
+--- a/xen/arch/arm/p2m.c
++++ b/xen/arch/arm/p2m.c
+@@ -1322,31 +1322,16 @@ static inline int p2m_remove_mapping(struct domain *d,
+     return rc;
+ }
+ 
+-int map_regions_p2mt(struct domain *d,
++int map_mmio_regions(struct domain *d,
+                      gfn_t gfn,
+                      unsigned long nr,
+                      mfn_t mfn,
+                      p2m_type_t p2mt)
+ {
++    ASSERT(p2m_is_mmio(p2mt));
+     return p2m_insert_mapping(d, gfn, nr, mfn, p2mt);
+ }
+ 
+-int unmap_regions_p2mt(struct domain *d,
+-                       gfn_t gfn,
+-                       unsigned long nr,
+-                       mfn_t mfn)
+-{
+-    return p2m_remove_mapping(d, gfn, nr, mfn);
+-}
+-
+-int map_mmio_regions(struct domain *d,
+-                     gfn_t start_gfn,
+-                     unsigned long nr,
+-                     mfn_t mfn)
+-{
+-    return p2m_insert_mapping(d, start_gfn, nr, mfn, p2m_mmio_direct_dev);
+-}
+-
+ int unmap_mmio_regions(struct domain *d,
+                        gfn_t start_gfn,
+                        unsigned long nr,
+diff --git a/xen/arch/arm/platforms/exynos5.c b/xen/arch/arm/platforms/exynos5.c
+index 6560507092..97cd080759 100644
+--- a/xen/arch/arm/platforms/exynos5.c
++++ b/xen/arch/arm/platforms/exynos5.c
+@@ -83,11 +83,13 @@ static int exynos5250_specific_mapping(struct domain *d)
+ {
+     /* Map the chip ID */
+     map_mmio_regions(d, gaddr_to_gfn(EXYNOS5_PA_CHIPID), 1,
+-                     maddr_to_mfn(EXYNOS5_PA_CHIPID));
++                     maddr_to_mfn(EXYNOS5_PA_CHIPID),
++                     p2m_mmio_direct_dev);
+ 
+     /* Map the PWM region */
+     map_mmio_regions(d, gaddr_to_gfn(EXYNOS5_PA_TIMER), 2,
+-                     maddr_to_mfn(EXYNOS5_PA_TIMER));
++                     maddr_to_mfn(EXYNOS5_PA_TIMER),
++                     p2m_mmio_direct_dev);
+ 
+     return 0;
+ }
+diff --git a/xen/arch/arm/platforms/omap5.c b/xen/arch/arm/platforms/omap5.c
+index aee24e4d28..c5701dfd6c 100644
+--- a/xen/arch/arm/platforms/omap5.c
++++ b/xen/arch/arm/platforms/omap5.c
+@@ -99,19 +99,23 @@ static int omap5_specific_mapping(struct domain *d)
+ {
+     /* Map the PRM module */
+     map_mmio_regions(d, gaddr_to_gfn(OMAP5_PRM_BASE), 2,
+-                     maddr_to_mfn(OMAP5_PRM_BASE));
++                     maddr_to_mfn(OMAP5_PRM_BASE),
++                     p2m_mmio_direct_dev);
+ 
+     /* Map the PRM_MPU */
+     map_mmio_regions(d, gaddr_to_gfn(OMAP5_PRCM_MPU_BASE), 1,
+-                     maddr_to_mfn(OMAP5_PRCM_MPU_BASE));
++                     maddr_to_mfn(OMAP5_PRCM_MPU_BASE),
++                     p2m_mmio_direct_dev);
+ 
+     /* Map the Wakeup Gen */
+     map_mmio_regions(d, gaddr_to_gfn(OMAP5_WKUPGEN_BASE), 1,
+-                     maddr_to_mfn(OMAP5_WKUPGEN_BASE));
++                     maddr_to_mfn(OMAP5_WKUPGEN_BASE),
++                     p2m_mmio_direct_dev);
+ 
+     /* Map the on-chip SRAM */
+     map_mmio_regions(d, gaddr_to_gfn(OMAP5_SRAM_PA), 32,
+-                     maddr_to_mfn(OMAP5_SRAM_PA));
++                     maddr_to_mfn(OMAP5_SRAM_PA),
++                     p2m_mmio_direct_dev);
+ 
+     return 0;
+ }
+diff --git a/xen/arch/arm/traps.c b/xen/arch/arm/traps.c
+index 9339d12f58..c8c79581c2 100644
+--- a/xen/arch/arm/traps.c
++++ b/xen/arch/arm/traps.c
+@@ -1890,7 +1890,7 @@ static bool try_map_mmio(gfn_t gfn)
+     if ( !iomem_access_permitted(d, mfn_x(mfn), mfn_x(mfn)) )
+         return false;
+ 
+-    return !map_regions_p2mt(d, gfn, 1, mfn, p2m_mmio_direct_c);
++    return !map_mmio_regions(d, gfn, 1, mfn, p2m_mmio_direct_c);
+ }
+ 
+ static void do_trap_stage2_abort_guest(struct cpu_user_regs *regs,
+diff --git a/xen/arch/arm/vgic-v2.c b/xen/arch/arm/vgic-v2.c
+index b1bd7a46ad..d6c8d89f13 100644
+--- a/xen/arch/arm/vgic-v2.c
++++ b/xen/arch/arm/vgic-v2.c
+@@ -715,7 +715,8 @@ static int vgic_v2_domain_init(struct domain *d)
+      * region of the guest.
+      */
+     ret = map_mmio_regions(d, gaddr_to_gfn(d->arch.vgic.cbase),
+-                           csize / PAGE_SIZE, maddr_to_mfn(vbase));
++                           csize / PAGE_SIZE, maddr_to_mfn(vbase),
++                           p2m_mmio_direct_dev);
+     if ( ret )
+         return ret;
+ 
+diff --git a/xen/arch/arm/vgic/vgic-v2.c b/xen/arch/arm/vgic/vgic-v2.c
+index 1a99d3a8b4..e76ac263b9 100644
+--- a/xen/arch/arm/vgic/vgic-v2.c
++++ b/xen/arch/arm/vgic/vgic-v2.c
+@@ -329,7 +329,8 @@ int vgic_v2_map_resources(struct domain *d)
+      * region of the guest.
+      */
+     ret = map_mmio_regions(d, gaddr_to_gfn(d->arch.vgic.vgic_cpu_base),
+-                           csize / PAGE_SIZE, maddr_to_mfn(vbase));
++                           csize / PAGE_SIZE, maddr_to_mfn(vbase),
++                           p2m_mmio_direct_dev);
+     if ( ret )
+     {
+         gdprintk(XENLOG_ERR, "Unable to remap VGIC CPU to VCPU\n");
+diff --git a/xen/arch/x86/hvm/dom0_build.c b/xen/arch/x86/hvm/dom0_build.c
+index f9e17249dc..97fef8d6ee 100644
+--- a/xen/arch/x86/hvm/dom0_build.c
++++ b/xen/arch/x86/hvm/dom0_build.c
+@@ -80,7 +80,7 @@ static int __init modify_identity_mmio(struct domain *d, unsigned long pfn,
+ 
+     for ( ; ; )
+     {
+-        rc = map ?   map_mmio_regions(d, _gfn(pfn), nr_pages, _mfn(pfn))
++        rc = map ? map_mmio_region(d, _gfn(pfn), nr_pages, _mfn(pfn))
+                  : unmap_mmio_regions(d, _gfn(pfn), nr_pages, _mfn(pfn));
+         if ( rc == 0 )
+             break;
+diff --git a/xen/arch/x86/include/asm/p2m.h b/xen/arch/x86/include/asm/p2m.h
+index 6e2206874d..c0e71d32f7 100644
+--- a/xen/arch/x86/include/asm/p2m.h
++++ b/xen/arch/x86/include/asm/p2m.h
+@@ -1010,6 +1010,14 @@ static inline int p2m_entry_modify(struct p2m_domain *p2m, p2m_type_t nt,
+     return 0;
+ }
+ 
++/* x86 doesn't use the p2mt parameter, just strip it away */
++#define map_mmio_regions(d, start_gfn, nr, mfn, p2mt) \
++            map_mmio_region(d, start_gfn, nr, mfn)
++int map_mmio_region(struct domain *d,
++                    gfn_t start_gfn,
++                    unsigned long nr,
++                    mfn_t mfn);
++
+ #endif /* _XEN_ASM_X86_P2M_H */
+ 
+ /*
+diff --git a/xen/arch/x86/mm/p2m.c b/xen/arch/x86/mm/p2m.c
+index c1cff37709..2af9fdc348 100644
+--- a/xen/arch/x86/mm/p2m.c
++++ b/xen/arch/x86/mm/p2m.c
+@@ -1995,10 +1995,10 @@ static unsigned int mmio_order(const struct domain *d,
+ 
+ #define MAP_MMIO_MAX_ITER 64 /* pretty arbitrary */
+ 
+-int map_mmio_regions(struct domain *d,
+-                     gfn_t start_gfn,
+-                     unsigned long nr,
+-                     mfn_t mfn)
++int map_mmio_region(struct domain *d,
++                    gfn_t start_gfn,
++                    unsigned long nr,
++                    mfn_t mfn)
+ {
+     int ret = 0;
+     unsigned long i;
+diff --git a/xen/common/domctl.c b/xen/common/domctl.c
+index d7042eb7ab..3fec173993 100644
+--- a/xen/common/domctl.c
++++ b/xen/common/domctl.c
+@@ -725,6 +725,7 @@ long do_domctl(XEN_GUEST_HANDLE_PARAM(xen_domctl_t) u_domctl)
+         unsigned long nr_mfns = op->u.memory_mapping.nr_mfns;
+         unsigned long mfn_end = mfn + nr_mfns - 1;
+         int add = op->u.memory_mapping.add_mapping;
++        p2m_type_t p2mt;
+ 
+         ret = -EINVAL;
+         if ( mfn_end < mfn || /* wrap? */
+@@ -737,6 +738,10 @@ long do_domctl(XEN_GUEST_HANDLE_PARAM(xen_domctl_t) u_domctl)
+         /* Must break hypercall up as this could take a while. */
+         if ( nr_mfns > 0x3000 )
+             break;
++
++        p2mt = p2m_mmio_direct_dev;
++#else
++        p2mt = p2m_mmio_direct;
+ #endif
+ 
+         ret = -EPERM;
+@@ -757,7 +762,7 @@ long do_domctl(XEN_GUEST_HANDLE_PARAM(xen_domctl_t) u_domctl)
+                    "memory_map:add: dom%d gfn=%lx mfn=%lx nr=%lx\n",
+                    d->domain_id, gfn, mfn, nr_mfns);
+ 
+-            ret = map_mmio_regions(d, _gfn(gfn), nr_mfns, _mfn(mfn));
++            ret = map_mmio_regions(d, _gfn(gfn), nr_mfns, _mfn(mfn), p2mt);
+             if ( ret < 0 )
+                 printk(XENLOG_G_WARNING
+                        "memory_map:fail: dom%d gfn=%lx mfn=%lx nr=%lx ret:%ld\n",
+diff --git a/xen/drivers/vpci/header.c b/xen/drivers/vpci/header.c
+index cf841c404f..561853c57a 100644
+--- a/xen/drivers/vpci/header.c
++++ b/xen/drivers/vpci/header.c
+@@ -69,7 +69,8 @@ static int map_range(unsigned long s, unsigned long e, void *data,
+          * - {un}map_mmio_regions doesn't support preemption.
+          */
+ 
+-        rc = map->map ? map_mmio_regions(map->d, start_gfn, size, _mfn(s))
++        rc = map->map ? map_mmio_regions(map->d, start_gfn, size, _mfn(s),
++                                         p2m_mmio_direct_dev)
+                       : unmap_mmio_regions(map->d, start_gfn, size, _mfn(s));
+         if ( rc == 0 )
+         {
+diff --git a/xen/include/xen/p2m-common.h b/xen/include/xen/p2m-common.h
+index 80bac95057..9162516984 100644
+--- a/xen/include/xen/p2m-common.h
++++ b/xen/include/xen/p2m-common.h
+@@ -21,13 +21,16 @@ guest_physmap_remove_page(struct domain *d, gfn_t gfn, mfn_t mfn,
+ }
+ #endif
+ 
+-/* Map MMIO regions in the p2m: start_gfn and nr describe the range in
+- *  * the guest physical address space to map, starting from the machine
+- *   * frame number mfn. */
++/*
++ * Map MMIO regions in the p2m: start_gfn and nr describe the range in
++ * the guest physical address space to map, starting from the machine
++ * frame number mfn.
++ */
+ int map_mmio_regions(struct domain *d,
+                      gfn_t start_gfn,
+                      unsigned long nr,
+-                     mfn_t mfn);
++                     mfn_t mfn,
++                     p2m_type_t p2mt);
+ int unmap_mmio_regions(struct domain *d,
+                        gfn_t start_gfn,
+                        unsigned long nr,
+-- 
+2.46.2
+

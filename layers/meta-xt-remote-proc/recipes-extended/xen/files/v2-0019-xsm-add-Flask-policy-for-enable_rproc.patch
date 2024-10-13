@@ -1,0 +1,81 @@
+From 8adb07f71c6ee19c2a637f20e3120a89ab2cffa3 Mon Sep 17 00:00:00 2001
+From: Valerii Chubar <valerii_chubar@epam.com>
+Date: Fri, 6 Aug 2021 02:08:16 +0300
+Subject: [PATCH v2 19/23] xsm: add Flask policy for enable_rproc
+
+Introduce the flask access rule XEN_DOMCTL_enable_rproc.
+Allow dom0_t making the hypercalls in domD_t and domU_t contexts.
+
+Signed-off-by: Valerii Chubar <valerii_chubar@epam.com>
+Signed-off-by: Volodymyr Babchuk <volodymyr_babchuk@epam.com>
+---
+ tools/flask/policy/modules/dom0.te  | 2 +-
+ tools/flask/policy/modules/domD.te  | 1 +
+ tools/flask/policy/modules/domU.te  | 3 +++
+ xen/xsm/flask/hooks.c               | 3 +++
+ xen/xsm/flask/policy/access_vectors | 2 ++
+ 5 files changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/tools/flask/policy/modules/dom0.te b/tools/flask/policy/modules/dom0.te
+index 0a63ce15b6..4eddcc070c 100644
+--- a/tools/flask/policy/modules/dom0.te
++++ b/tools/flask/policy/modules/dom0.te
+@@ -39,7 +39,7 @@ allow dom0_t dom0_t:domain {
+ };
+ allow dom0_t dom0_t:domain2 {
+ 	set_cpu_policy gettsc settsc setscheduler set_vnumainfo
+-	get_vnumainfo psr_cmt_op psr_alloc get_cpu_policy
++	get_vnumainfo psr_cmt_op psr_alloc get_cpu_policy enable_rproc
+ };
+ allow dom0_t dom0_t:resource { add remove };
+ 
+diff --git a/tools/flask/policy/modules/domD.te b/tools/flask/policy/modules/domD.te
+index a2c32047ad..f57285fb1f 100644
+--- a/tools/flask/policy/modules/domD.te
++++ b/tools/flask/policy/modules/domD.te
+@@ -31,3 +31,4 @@ allow domD_t domU_t_channel:event create;
+ allow domD_t domU_t:hvm dm;
+ allow domD_t xen_t:xen physinfo;
+ allow domD_t domU_t:domain getdomaininfo;
++allow dom0_t domD_t:domain2 enable_rproc;
+diff --git a/tools/flask/policy/modules/domU.te b/tools/flask/policy/modules/domU.te
+index 012c3ba1ea..a71498f9eb 100644
+--- a/tools/flask/policy/modules/domU.te
++++ b/tools/flask/policy/modules/domU.te
+@@ -31,3 +31,6 @@ use_device_iommu_nointremap(domU_t, irq_t)
+ use_device_iommu_nointremap(domU_t, iomem_t)
+ use_device_iommu_nointremap(domU_t, device_t)
+ use_device_iommu_nointremap(domU_t, ioport_t)
++
++allow dom0_t domU_t:domain2 enable_rproc;
++
+diff --git a/xen/xsm/flask/hooks.c b/xen/xsm/flask/hooks.c
+index 3b29f7fde3..2e2c823261 100644
+--- a/xen/xsm/flask/hooks.c
++++ b/xen/xsm/flask/hooks.c
+@@ -751,6 +751,9 @@ static int flask_domctl(struct domain *d, int cmd)
+     case XEN_DOMCTL_get_cpu_policy:
+         return current_has_perm(d, SECCLASS_DOMAIN2, DOMAIN2__GET_CPU_POLICY);
+ 
++    case XEN_DOMCTL_enable_rproc:
++        return current_has_perm(d, SECCLASS_DOMAIN2, DOMAIN2__ENABLE_RPROC);
++
+     default:
+         return avc_unknown_permission("domctl", cmd);
+     }
+diff --git a/xen/xsm/flask/policy/access_vectors b/xen/xsm/flask/policy/access_vectors
+index 6359c7fc87..375de9133e 100644
+--- a/xen/xsm/flask/policy/access_vectors
++++ b/xen/xsm/flask/policy/access_vectors
+@@ -245,6 +245,8 @@ class domain2
+     resource_map
+ # XEN_DOMCTL_get_cpu_policy
+     get_cpu_policy
++# XEN_DOMCTL_enable_rproc
++    enable_rproc
+ }
+ 
+ # Similar to class domain, but primarily contains domctls related to HVM domains
+-- 
+2.46.2
+
