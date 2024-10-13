@@ -1,0 +1,54 @@
+From c2ea2a29fa7d4adb22d4b418bc2db710d3af9ed0 Mon Sep 17 00:00:00 2001
+Message-Id: <c2ea2a29fa7d4adb22d4b418bc2db710d3af9ed0.1728467566.git.mykyta_poturai@epam.com>
+From: Mykyta Poturai <mykyta_poturai@epam.com>
+Date: Wed, 9 Oct 2024 12:51:21 +0300
+Subject: [PATCH] Export xenmem_reservation_scrub_page
+
+When xenmem_reservation_scrub_page is in the header GLES_KM fails to
+build because it can't link with xen_scrub_pages. Move it to the C file
+and export the symbol to fix it.
+
+Signed-off-by: Mykyta Poturai <mykyta_poturai@epam.com>
+---
+ drivers/xen/mem-reservation.c | 7 +++++++
+ include/xen/mem-reservation.h | 6 +-----
+ 2 files changed, 8 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/xen/mem-reservation.c b/drivers/xen/mem-reservation.c
+index 3782cf070338..96bd3cffd540 100644
+--- a/drivers/xen/mem-reservation.c
++++ b/drivers/xen/mem-reservation.c
+@@ -25,6 +25,13 @@ core_param(xen_scrub_pages, xen_scrub_pages, bool, 0);
+  */
+ #define EXTENT_ORDER (fls(XEN_PFN_PER_PAGE) - 1)
+ 
++void xenmem_reservation_scrub_page(struct page *page)
++{
++	if (xen_scrub_pages)
++		clear_highpage(page);
++}
++
++EXPORT_SYMBOL_GPL(xenmem_reservation_scrub_page);
+ #ifdef CONFIG_XEN_HAVE_PVMMU
+ void __xenmem_reservation_va_mapping_update(unsigned long count,
+ 					    struct page **pages,
+diff --git a/include/xen/mem-reservation.h b/include/xen/mem-reservation.h
+index a2ab516fcd2c..fd6c2fd266fe 100644
+--- a/include/xen/mem-reservation.h
++++ b/include/xen/mem-reservation.h
+@@ -19,11 +19,7 @@
+ 
+ extern bool xen_scrub_pages;
+ 
+-static inline void xenmem_reservation_scrub_page(struct page *page)
+-{
+-	if (xen_scrub_pages)
+-		clear_highpage(page);
+-}
++void xenmem_reservation_scrub_page(struct page *page);
+ 
+ #ifdef CONFIG_XEN_HAVE_PVMMU
+ void __xenmem_reservation_va_mapping_update(unsigned long count,
+-- 
+2.34.1
+
