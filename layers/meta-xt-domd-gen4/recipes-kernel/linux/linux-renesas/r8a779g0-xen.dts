@@ -20,10 +20,33 @@
 	reserved-memory {
 		/delete-node/ linux,cma@80000000;
 	};
+
+	soc {
+		gsx_osid0_domd {
+			xen,passthrough;
+			iommus = <&ipmmu_3dg 0>;
+		};
+
+		gsx_osid1_domu {
+			xen,passthrough;
+			iommus = <&ipmmu_3dg 1>;
+		};
+
+		gsx_osid_rest {
+			xen,passthrough;
+			iommus = <&ipmmu_3dg 2>, <&ipmmu_3dg 3>,
+				 <&ipmmu_3dg 4>, <&ipmmu_3dg 5>,
+				 <&ipmmu_3dg 6>, <&ipmmu_3dg 7>;
+		};
+	};
 };
 
 &gsx {
 	xen,passthrough;
+	interrupts = <GIC_SPI 464 IRQ_TYPE_LEVEL_HIGH>,
+				 <GIC_SPI 465 IRQ_TYPE_LEVEL_HIGH>;
+	/delete-property/iommus;
+	/delete-property/ipmmu-id;
 };
 
 &ipmmu_mm {
