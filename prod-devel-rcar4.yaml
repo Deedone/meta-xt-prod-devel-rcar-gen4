@@ -36,8 +36,8 @@ common_data:
       url: https://github.com/rshym/meta-renesas.git
       rev: rsm_v4h_kirkstone
     - type: git
-      url: https://github.com/Deedone/meta-xt-rcar
-      rev: v4h_xt_wip
+      url: https://github.com/xen-troops/meta-xt-rcar
+      rev: v0.2.0
 
   # Common configuration options for all yocto-based domains
   conf: &COMMON_CONF
