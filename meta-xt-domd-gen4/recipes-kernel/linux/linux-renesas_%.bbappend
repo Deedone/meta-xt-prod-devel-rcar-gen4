@@ -18,6 +18,7 @@ SRC_URI:append = " \
     file://0002-PCIe-MSI-support.${MACHINE}.patch \
     file://0004-HACK-Allow-DomD-enumerate-PCI-devices.patch \
     file://0003-xen-pciback-allow-compiling-on-other-archs-than-x86.patch \
+    file://0001-Export-xenmem_reservation_scrub_page.patch \
 "
 
 SRC_URI:remove:rcar-v4x = "file://0001-arm64-dts-renesas-r8a779g0-Add-Native-device-support.patch"
