@@ -1,8 +1,8 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-RENESAS_BSP_URL:r8a779f0 = "git://github.com/xen-troops/linux.git"
-BRANCH:r8a779f0 = "${XT_KERNEL_BRANCH}"
-SRCREV:r8a779f0 = "${XT_KERNEL_REV}"
+RENESAS_BSP_URL = "git://github.com/renesas-rcar/linux-bsp.git;protocol=https"
+BRANCH = "${RENESAS_BSP_BRANCH}"
+SRCREV = "${RENESAS_BSP_SRCREV}"
 
 SRC_URI:append:r8a779g0 = " \
     file://r8a779g0.cfg \
