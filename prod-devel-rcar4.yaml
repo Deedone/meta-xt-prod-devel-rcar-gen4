@@ -315,8 +315,11 @@ parameters:
   ENABLE_DOMU:
     desc: "Build generic Yocto-based DomU"
     "no":
-      default: true
+      overrides:
+        variables:
+          XT_GENERIC_DOMU_TAG: ""
     "yes":
+      default: true
       overrides:
         variables:
           XT_GENERIC_DOMU_TAG: "domu"
