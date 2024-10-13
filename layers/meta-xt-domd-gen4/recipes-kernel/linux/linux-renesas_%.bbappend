@@ -4,6 +4,14 @@ RENESAS_BSP_URL:r8a779f0 = "git://github.com/xen-troops/linux.git"
 BRANCH:r8a779f0 = "${XT_KERNEL_BRANCH}"
 SRCREV:r8a779f0 = "${XT_KERNEL_REV}"
 
+SRC_URI:append:r8a779g0 = " \
+    file://r8a779g0.cfg \
+"
+
+SRC_URI:remove:r8a779g0 = " \
+    file://r8a779f0.cfg \
+"
+
 SRC_URI:append = " \
     file://ixgbe.cfg \
     file://multicast_routing.cfg \
