@@ -111,6 +111,11 @@
 
 &pciec0 {
 	iommus = <&ipmmu_hc 32>;
+	iommu-map = <0x000 &ipmmu_hc 32 0x1>,
+		    <0x100 &ipmmu_hc 33 0x1>,
+		    <0x101 &ipmmu_hc 34 0x1>,
+		    <0x102 &ipmmu_hc 35 0x10>,
+		    <0x280 &ipmmu_hc 36 0x1>;
 	msi-map = <0x0 &gic_its 0x0 0x1000>;
 	interrupt-map = <0 0 0 1 &gic 0 0 GIC_SPI 449 IRQ_TYPE_LEVEL_HIGH
 					0 0 0 2 &gic 0 0 GIC_SPI 449 IRQ_TYPE_LEVEL_HIGH
@@ -178,6 +183,9 @@
 &dsi1 { xen,passthrough; };
 &isp0 { xen,passthrough; };
 &isp1 { xen,passthrough; };
+
+&cisp0 { xen,passthrough; };
+&cisp1 { xen,passthrough; };
 
 &soc {
     /delete-node/video@e6ef4000;

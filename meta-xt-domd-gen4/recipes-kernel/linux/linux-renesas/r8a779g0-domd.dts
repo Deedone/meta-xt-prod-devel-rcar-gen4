@@ -147,9 +147,15 @@
 };
 
 &pciec0 {
+	compatible = "xen-troops,passthrough";
 	status = "okay";
 	ranges = <0x82000000 0 0x30000000 0 0x30000000 0 0x8000000>;
 	msi-map = <0x0 PHANDLE_ITS 0x0 0x1000>;
+	msi-parent = <PHANDLE_ITS>;
+	interrupt-map = <0 0 0 1 PHANDLE_GIC GIC_SPI 449 IRQ_TYPE_LEVEL_HIGH
+					0 0 0 2 PHANDLE_GIC GIC_SPI 449 IRQ_TYPE_LEVEL_HIGH
+					0 0 0 3 PHANDLE_GIC GIC_SPI 449 IRQ_TYPE_LEVEL_HIGH
+					0 0 0 4 PHANDLE_GIC GIC_SPI 449 IRQ_TYPE_LEVEL_HIGH>;
 };
 
 /* Xen serial consoles */
@@ -206,15 +212,28 @@
 	status = "disabled";
 };
 
+&fcpvd0 {
+	status = "okay";
+	compatible = "xen-troops,passthrough";
+};
+
+&fcpvd1 {
+	status = "okay";
+	compatible = "xen-troops,passthrough";
+};
+
 &vspd0 {
+	compatible = "xen-troops,passthrough";
 	status = "okay";
 };
 
 &vspd1 {
+	compatible = "xen-troops,passthrough";
 	status = "okay";
 };
 
 &du {
+	compatible = "xen-troops,passthrough";
 	status = "okay";
 };
 
@@ -223,18 +242,21 @@
 };
 
 &dsi0 {
+	compatible = "xen-troops,passthrough";
 	status = "okay";
 };
 
 &dsi1 {
-	status = "okay";
+	status = "disabled";
 };
 
 &i2c0 {
+	compatible = "xen-troops,passthrough";
 	status = "okay";
 };
 
 &i2c1 {
+	compatible = "xen-troops,passthrough";
 	status = "okay";
 	sn65dsi86_0@2c {
 		status = "okay";
@@ -266,22 +288,54 @@
 
 &isp0 {
 	status = "okay";
+	compatible = "xen-troops,passthrough";
 };
 
 &isp1 {
 	status = "okay";
+	compatible = "xen-troops,passthrough";
 };
 
-&vin00          { status = "disabled";};
-&vin01          { status = "disabled";};
-&vin02          { status = "disabled";};
-&vin03          { status = "disabled";};
-&vin10          { status = "disabled";};
-&vin11          { status = "disabled";};
-&vin12          { status = "disabled";};
-&vin13          { status = "disabled";};
-&csi40		   	{ status = "disabled";};
-&csi41		   	{ status = "disabled";};
+&vin00 {
+	status = "okay";
+	compatible = "xen-troops,passthrough";
+};
+&vin01 {
+	status = "okay";
+	compatible = "xen-troops,passthrough";
+};
+&vin02 {
+	status = "okay";
+	compatible = "xen-troops,passthrough";
+};
+&vin03 {
+	status = "okay";
+	compatible = "xen-troops,passthrough";
+};
+&vin10 {
+	status = "okay";
+	compatible = "xen-troops,passthrough";
+};
+&vin11 {
+	status = "okay";
+	compatible = "xen-troops,passthrough";
+};
+&vin12 {
+	status = "okay";
+	compatible = "xen-troops,passthrough";
+};
+&vin13 {
+	status = "okay";
+	compatible = "xen-troops,passthrough";
+};
+&csi40 {
+	status = "okay";
+	compatible = "xen-troops,passthrough";
+};
+&csi41 {
+	status = "okay";
+	compatible = "xen-troops,passthrough";
+};
 
 &gmsl0 {
 	status = "disabled";
