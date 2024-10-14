@@ -1,60 +1,84 @@
-# meta-xt-rcar-gen4 #
+# meta-xt-prod-v4h-demo
 
-This repository contains Renesas R-Car Gen4-specific Yocto layers for
-Xen Troops distro. Some layers in this repository are product-independent.
-They provide common facilities that may be used by any xt-based product
-that runs on Renesas Gen4-based platforms.
+This repository contains yocto meta layers and product configuration
+customized for the V4H Whitehawk Demo.
+The demo is based on the xen-troops/meta-xt-prod-devel-rcar-gen4 repo.
 
-Those layers *may* be added and used manually, but they were written
-with [Moulin](https://moulin.readthedocs.io/en/latest/) build system,
-as Moulin-based project files provide correct entries in local.conf
+This demo provides the following features:
 
-# Status
+ - Xen build compatible with V4H SoC
+ - Thin Dom0 (no hardware present)
+ - ADAS domain (DomD)
+ - IVI Domain (DomU)
+ - GPU passthrough in DomU
+ - PCI passthrough in DomU
+ - Camera in DomU
 
-This is a release 1.0 of the Xen-based development product for the
-S4-based boards.
+# How to build the demo
 
-This release provides the following features:
+## Prerequirements
 
- - Xen build compatible with S4 SoC
- - Thin Dom0
- - Driver domain (DomD), which has access to all available hardware
- - Optional generic domain (DomU)
- - Support for OP-TEE in virtualization mode
- - ICCOM partitioning demo (proprietary components are required to
-   test the feature)
- - R-Switch VMQ: R-Switch virtualization feature
- - R-Switch VMQ TSN: R-Switch TSN pass-through feature
- - R-Switch L3 routing offload (including VLAN routes)
- - R-Switch traffic control offload
- - R-Switch offloaded IPS/IDS Snort support
- - Disabling L3 HW forwarding respectively to /proc/sys/net/ipv4/ip_forward value
- - Disabling/enabling L3 offload via sysfs file
- - Virtualized OP-TEE support
- - PCIe SR-IOV support
+The buld was tested on the Ubuntu 20.04 LTS.
+Recommended hardware on the build host: intel i7, RAM 32GB, SSD with 150GB of free space.
 
-The following HW modules were tested and are confirmed to work:
+The demo is configured to be used with the [moulin build system](https://moulin.readthedocs.io/en/latest/).
 
- - Serial console (HSCIF)
- - IPMMUs
- - R-Switch
- - eMMC
- - PCIe with ITS (but there is a running issue with MSI interrupts
-   that sometimes do not work)
+Install moulin
+```
+pip3 install --user git+https://github.com/xen-troops/moulin
+```
 
-# External dependencies
+Install ninja
+```
+apt install ninja-build
+```
 
-At least IPL 0.5.0 is required for normal operation. Release was
-tested with IPL 3.6.0. User is required to flash ARM TF
-(bl31-${MACHINE}.srec) and OP-TEE (tee-${MACHINE}.srec) provided by the build
-to ensure that Xen and DomD/DomU will work correctly.
+Other packages may be required to be installed depending on the build host.
 
-# Documentation
+[TODO] describe full list of packages
 
-- [Building and booting][]
-- [Virtualization][]
-- [TC and L3 offload][]
+## Building
 
-[Building and booting]: ./doc/building.md
-[Virtualization]: ./doc/virtualization.md
-[TC and L3 offload]: ./doc/tc-and-l3-offload.md
+You have to fetch whole this product or download it as package.
+
+```
+git clone https://partnergitlab.renesas.solutions/v4h-fusion-poc/meta-xt-prod-v4h-demo.git
+cd meta-xt-prod-v4h-demo
+```
+
+Put DDK packages inside
+```
+cp <some_path>/GSX_KM_V4H_DDK23.3_v2.tar.bz2 .
+cp <some_path>/r8a779g0_linux_gsx_binaries_gles_vz_DDK23.3_v2.tar.bz2 .
+```
+
+Run moulin to create build.ninja file
+```
+moulin prod-devel-rcar4.yaml --MACHINE whitehawk --ENABLE_DOMU yes
+```
+
+Start the build
+```
+ninja full.img
+```
+
+## Flashing
+
+Flash the IPLs
+[TODO]
+
+Flash the bl31 and u-boot from the product
+[TODO]
+
+Flash the image and add test tools
+[TODO]
+
+## Run on the board
+```
+env delete bootargs; ext4load mmc 0:1 0x83000000 boot-emmc.uImage; source 0x83000000
+```
+
+## Testing
+[TODO]
+
+
