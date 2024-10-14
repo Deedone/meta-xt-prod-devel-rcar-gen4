@@ -27,3 +27,9 @@ IMAGE_INSTALL:append = " \
     xen-network \
     dnsmasq \
 "
+
+IMAGE_INSTALL:remove = " \
+    kernel-module-uio-pdrv-genirq \
+    kernel-module-cmemdrv \
+    kernel-module-cmemdrv-dev \
+"

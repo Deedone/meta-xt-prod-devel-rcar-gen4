@@ -18,6 +18,11 @@ SRC_URI:append:r8a779f0 = "\
 SRC_URI:append:r8a779g0 = " \
     file://r8a779g0-${MACHINE}-domu.dts;subdir=git/arch/${ARCH}/boot/dts/renesas \
     file://r8a779g0.cfg \
+    file://0002-PCIe-MSI-support.${MACHINE}.patch \
+    file://0004-HACK-Allow-DomD-enumerate-PCI-devices.patch \
+    file://0001-HACK-Allow-DSI-to-work-in-DomU.patch \
+    file://0002-HACK-Allow-VIN-to-work-in-DomU.patch \
+    file://0003-HACK-Allow-PCI-to-work-in-DomU.patch \
     file://0001-Export-xenmem_reservation_scrub_page.patch \
 "
 

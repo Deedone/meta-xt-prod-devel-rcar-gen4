@@ -1,0 +1,81 @@
+From 1a36535a83a9c20a00e4111c751cbbb67c65088c Mon Sep 17 00:00:00 2001
+Message-Id: <1a36535a83a9c20a00e4111c751cbbb67c65088c.1727704104.git.mykyta_poturai@epam.com>
+In-Reply-To: <15f3e7574ff33aa2985c2de933229f509e5893f6.1727704104.git.mykyta_poturai@epam.com>
+References: <15f3e7574ff33aa2985c2de933229f509e5893f6.1727704104.git.mykyta_poturai@epam.com>
+From: Mykyta Poturai <mykyta_poturai@epam.com>
+Date: Mon, 30 Sep 2024 16:45:04 +0300
+Subject: [PATCH 2/3] HACK: Allow VIN to work in DomU
+
+DomU doesn't have the access to clock and reset controls so all
+necessary clocks and resets are controlled by DomD. Skip initializing
+resets to allow the driver to probe correctly.
+
+Signed-off-by: Mykyta Poturai <mykyta_poturai@epam.com>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 14 +++++++-------
+ drivers/media/platform/rcar-vin/rcar-csi2.c |  9 +++++----
+ 2 files changed, 12 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index d1bd4c4f1b63..1b4a73f2ed9c 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -1540,13 +1540,13 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 	}
+ 	INIT_DELAYED_WORK(&vin->rvin_resume, rvin_resume_start_streaming);
+ 
+-	vin->rstc = devm_reset_control_get(&pdev->dev, NULL);
+-	if (IS_ERR(vin->rstc)) {
+-		dev_err(&pdev->dev, "failed to get cpg reset %s\n",
+-			dev_name(vin->dev));
+-		ret = PTR_ERR(vin->rstc);
+-		goto error_destroy_workqueue;
+-	}
++	// vin->rstc = devm_reset_control_get(&pdev->dev, NULL);
++	// if (IS_ERR(vin->rstc)) {
++	// 	dev_err(&pdev->dev, "failed to get cpg reset %s\n",
++	// 		dev_name(vin->dev));
++	// 	ret = PTR_ERR(vin->rstc);
++	// 	goto error_destroy_workqueue;
++	// }
+ 
+ 	vin->clk = devm_clk_get(&pdev->dev, NULL);
+ 	if (IS_ERR(vin->clk)) {
+diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
+index 9ff03c10f921..b627433e4456 100644
+--- a/drivers/media/platform/rcar-vin/rcar-csi2.c
++++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
+@@ -925,7 +925,7 @@ static void rcsi2_enter_standby(struct rcar_csi2 *priv)
+ 		rcsi2_write(priv, PHTC_REG, PHTC_TESTCLR);
+ 	}
+ 
+-	reset_control_assert(priv->rstc);
++	// reset_control_assert(priv->rstc);
+ 	usleep_range(100, 150);
+ 	pm_runtime_put(priv->dev);
+ }
+@@ -933,7 +933,7 @@ static void rcsi2_enter_standby(struct rcar_csi2 *priv)
+ static void rcsi2_exit_standby(struct rcar_csi2 *priv)
+ {
+ 	pm_runtime_get_sync(priv->dev);
+-	reset_control_deassert(priv->rstc);
++	// reset_control_deassert(priv->rstc);
+ }
+ 
+ static int rcsi2_wait_phy_start(struct rcar_csi2 *priv,
+@@ -2258,9 +2258,10 @@ static int rcsi2_probe_resources(struct rcar_csi2 *priv,
+ 	if (ret)
+ 		return ret;
+ 
+-	priv->rstc = devm_reset_control_get(&pdev->dev, NULL);
++	// priv->rstc = devm_reset_control_get(&pdev->dev, NULL);
+ 
+-	return PTR_ERR_OR_ZERO(priv->rstc);
++	// return PTR_ERR_OR_ZERO(priv->rstc);
++	return ret;
+ }
+ 
+ static const struct rcar_csi2_info rcar_csi2_info_r8a7795 = {
+-- 
+2.34.1
+
