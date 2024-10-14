@@ -19,25 +19,25 @@ common_data:
   sources: &COMMON_SOURCES
     - type: git
       url: "git://git.yoctoproject.org/poky"
-      rev: kirkstone
+      rev: "7e87dc422d972e0dc98372318fcdc63a76347d16" # kirkstone
     - type: git
       url: "git://git.openembedded.org/meta-openembedded"
-      rev: kirkstone
+      rev: "dd3d2293ffdf2559f8a433f241765a8ab50cd085" # kirkstone
     - type: git
       url: "git://git.yoctoproject.org/meta-virtualization"
-      rev: kirkstone
+      rev: "02a6c00d9370992a54296633de26a13a9a08ca2a" # kirkstone
     - type: git
       url: "https://github.com/xen-troops/meta-xt-common.git"
-      rev: v0.2.0
+      rev: "v0.2.0"
 
   # Sources to be used in DomD and DomU
   domd_domu_sources: &DOMD_DOMU_SOURCES
     - type: git
       url: https://github.com/rshym/meta-renesas.git
-      rev: rsm_v4h_kirkstone
+      rev: "50aab61dab183244507f9e38bdb738cd5730e480" # rsm_v4h_kirkstone
     - type: git
       url: https://github.com/xen-troops/meta-xt-rcar
-      rev: v0.2.0
+      rev: "v0.2.0"
 
   # Common configuration options for all yocto-based domains
   conf: &COMMON_CONF
@@ -146,7 +146,7 @@ components:
       - *DOMD_DOMU_SOURCES
       - type: git
         url: git://git.yoctoproject.org/meta-selinux
-        rev: kirkstone
+        rev: "a401f4b2816a0b41ce8d9351542658c721935bcd" # kirkstone
     builder:
       type: yocto
       work_dir: "%{DOMD_BUILD_DIR}"
