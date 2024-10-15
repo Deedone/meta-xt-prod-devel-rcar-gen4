@@ -1,4 +1,4 @@
-From d0b1a1af01c7057ed5568f748e6661fed548e4cf Mon Sep 17 00:00:00 2001
+From 5327f99f23eae3ee5759f06c6b0fb659025e5824 Mon Sep 17 00:00:00 2001
 From: Volodymyr Babchuk <volodymyr_babchuk@epam.com>
 Date: Wed, 9 Oct 2024 17:44:11 +0300
 Subject: [PATCH v2 22/23] rproc: move rproc code to separate driver, enable
@@ -147,7 +147,7 @@ index ed6565ec98..25cbef9ad0 100644
  obj-$(CONFIG_ARM_SMMU_V3) += smmu-v3.o
 diff --git a/xen/drivers/passthrough/arm/plat-rcar/rproc.c b/xen/drivers/passthrough/arm/plat-rcar/rproc.c
 new file mode 100644
-index 0000000000..78fb653e2c
+index 0000000000..150566b39e
 --- /dev/null
 +++ b/xen/drivers/passthrough/arm/plat-rcar/rproc.c
 @@ -0,0 +1,652 @@
@@ -181,7 +181,7 @@ index 0000000000..78fb653e2c
 +
 +#define MFIS_MAX_CHANNELS 8
 +
-+#define MFIS_IICR(k) (0x1400 + 0x1008 * 0 + 0x20 * k)
++#define MFIS_IICR(k) (0x1400 + 0x1008 * k + 0x20 * 0)
 +#define MFIS_EICR(i) (0x9404 + 0x1020 * 0 + 0x8 * i)
 +
 +#define MFIS_SMC_TRIG  ARM_SMCCC_CALL_VAL(ARM_SMCCC_FAST_CALL,         \
