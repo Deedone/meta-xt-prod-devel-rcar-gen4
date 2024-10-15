@@ -336,3 +336,6 @@
 &canfd {
 	status = "disabled";
 };
+
+/delete-node/ &tisp0;
+/delete-node/ &tisp1;
