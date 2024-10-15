@@ -1,0 +1,151 @@
+From 14262e724edefd7165a0fbddac1a5145f6a58a27 Mon Sep 17 00:00:00 2001
+From: Joe Lindlbauer <joe.lindlbauer.rj@renesas.com>
+Date: Mon, 23 Sep 2024 16:36:32 -0400
+Subject: [PATCH 2/2] device-tree: renesas: cr52_rproc: Enable use of cameras
+
+Enable i2c, vin, csi, vspx, cisp, tisp nodes
+Add rvgc_region for shared framebuffers instead of using cma. Avoids conflicts with BufManager.
+---
+ .../dts/renesas/whitehawk_cr52_rproc.dtsi     | 73 ++++++++++++-------
+ 1 file changed, 48 insertions(+), 25 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/renesas/whitehawk_cr52_rproc.dtsi b/arch/arm64/boot/dts/renesas/whitehawk_cr52_rproc.dtsi
+index 77fe9930ea1c..737d18dca1e7 100644
+--- a/arch/arm64/boot/dts/renesas/whitehawk_cr52_rproc.dtsi
++++ b/arch/arm64/boot/dts/renesas/whitehawk_cr52_rproc.dtsi
+@@ -10,9 +10,9 @@ aliases {
+ 		/* The CR52 will control video input so exclusively uses i2c4
+ 		 * as it needs to access the adv7482, i.e. Linux can no longer
+ 		 * use i2c4 for anything */
+-		/delete-property/ i2c0;
+-		/delete-property/ i2c1;
+-		/delete-property/ i2c4;
++		///delete-property/ i2c0;
++		///delete-property/ i2c1;
++		///delete-property/ i2c4;
+ 	};
+ 
+ 	cpus {
+@@ -23,7 +23,14 @@ reserved-memory {
+ 		/* global autoconfigured region for contiguous allocations */
+ 		/* Only added a label so rvgc can refer to it */
+ 		cma: linux,cma@80000000 {
+-            reg = <0x0 0x80000000 0x0 0x10000000>;
++			reg = <0x0 0x80000000 0x0 0x30000000>;
++		};
++
++		rvgc_region: linux,rvgc_region@b0000000 {
++			compatible = "shared-dma-pool";
++			reusable;
++			reg = <0x0 0xB0000000 0x0 0x10000000>;
++			linux;
+ 		};
+ 	};
+ 
+@@ -37,10 +44,10 @@ rvgc {
+ 		#size-cells = <2>;
+ 
+ 		/* 1:1 mapping for the cma address space */
+-		dma-ranges = <0x0 0x80000000 0x0 0x80000000 0x0 0x10000000>;
++		dma-ranges = <0x0 0xB0000000 0x0 0xB0000000 0x0 0x10000000>;
+ 
+ 		rvgc-memory {
+-			memory-region = <&cma>;
++			memory-region = <&rvgc_region>;
+ 		};
+ 
+ 		displays {
+@@ -58,7 +65,7 @@ primary{
+ 					};
+ 
+ 					overlay-0 {
+-						layer-map = <0x2>;
++						layer-map = <0x3>;
+ 						size-w = <640>;
+ 						size-h = <480>;
+ 						pos-x = <200>;
+@@ -66,7 +73,7 @@ overlay-0 {
+ 					};
+ 
+ 					overlay-1 {
+-						layer-map = <0x1>;
++						layer-map = <0x2>;
+ 						size-w = <640>;
+ 						size-h = <480>;
+ 						pos-x = <300>;
+@@ -74,7 +81,15 @@ overlay-1 {
+ 					};
+ 
+ 					overlay-2 {
+-						layer-map=<0x3>;
++						layer-map=<0x1>;
++						size-w=<640>;
++						size-h=<480>;
++						pos-x=<0>;
++						pos-y=<200>;
++					};
++
++					overlay-3 {
++						layer-map=<0x0>;
+ 						size-w=<640>;
+ 						size-h=<480>;
+ 						pos-x=<0>;
+@@ -102,11 +117,19 @@ mfis: mfis@e6260000 {
+ 	};
+ };
+ 
++&i2c1 {
++    /delete-node/ sn65dsi86_0@2c;
++};
++
++&i2c4 {
++    /delete-node/ sn65dsi86_1@2c;
++};
++
+ /delete-node/ &cmt0;
+ 
+-/delete-node/ &i2c0;
+-/delete-node/ &i2c1;
+-/delete-node/ &i2c4;
++///delete-node/ &i2c0;
++///delete-node/ &i2c1;
++///delete-node/ &i2c4;
+ /delete-node/ &pciec0;
+ 
+ /delete-node/ &dsi0;
+@@ -118,19 +141,19 @@ mfis: mfis@e6260000 {
+ /delete-node/ &fcpvd0;
+ /delete-node/ &fcpvd1;
+ 
+-/delete-node/ &vin00;
+-/delete-node/ &vin01;
+-/delete-node/ &vin02;
+-/delete-node/ &vin03;
+-/delete-node/ &vin10;
+-/delete-node/ &vin11;
+-/delete-node/ &vin12;
+-/delete-node/ &vin13;
+-/delete-node/ &csi40;
+-/delete-node/ &csi41;
++///delete-node/ &vin00;
++///delete-node/ &vin01;
++///delete-node/ &vin02;
++///delete-node/ &vin03;
++///delete-node/ &vin10;
++///delete-node/ &vin11;
++///delete-node/ &vin12;
++///delete-node/ &vin13;
++///delete-node/ &csi40;
++///delete-node/ &csi41;
+ ///delete-node/ &gmsl0;
+ 
+-/delete-node/ &vspx0;
+-/delete-node/ &cisp0;
+-/delete-node/ &tisp0;
++///delete-node/ &vspx0;
++///delete-node/ &cisp0;
++///delete-node/ &tisp0;
+ 
+-- 
+2.43.2
+

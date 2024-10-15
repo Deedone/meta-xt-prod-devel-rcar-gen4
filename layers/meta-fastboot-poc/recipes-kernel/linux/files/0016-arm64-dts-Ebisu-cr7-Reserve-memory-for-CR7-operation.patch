@@ -1,0 +1,34 @@
+From 9a89c7d596c53f8f9433319041f6dc6c2110766b Mon Sep 17 00:00:00 2001
+From: Khiem Nguyen <khiem.nguyen.xt@renesas.com>
+Date: Tue, 9 Mar 2021 20:15:16 +0700
+Subject: [PATCH 16/70] arm64: dts: Ebisu cr7: Reserve memory for CR7 operation
+
+Most use cases for the Cortex-R7 require it to be running long before
+linux is started. Therefore, if the CR7 is already running, do not
+reset it and do not download new firmware.
+
+This patch reserves the CR7 memory in which Linux will not touch.
+
+Signed-off-by: Khiem Nguyen <khiem.nguyen.xt@renesas.com>
+---
+ arch/arm64/boot/dts/renesas/ebisu-4d_cr7_rproc.dtsi | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/renesas/ebisu-4d_cr7_rproc.dtsi b/arch/arm64/boot/dts/renesas/ebisu-4d_cr7_rproc.dtsi
+index 7e917686c7b6..ffd003da728e 100644
+--- a/arch/arm64/boot/dts/renesas/ebisu-4d_cr7_rproc.dtsi
++++ b/arch/arm64/boot/dts/renesas/ebisu-4d_cr7_rproc.dtsi
+@@ -22,9 +22,8 @@ reserved-memory {
+ 		cma: linux,cma@58000000 {
+ 		};
+ 
+-		/* Memory used by the CR7, including virtual display buffers */
++		/* Memory used by the CR7 */
+ 		cr7: linux,cr7@70000000 {
+-			compatible = "shared-dma-pool";
+ 			no-map;
+ 			reg = <0x0 0x70000000 0x0 0x10000000>;
+ 		};
+-- 
+2.25.1
+

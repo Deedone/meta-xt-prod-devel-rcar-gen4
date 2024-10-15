@@ -1,0 +1,76 @@
+From c033aa3671bdebc20d610a8d569839c21571f960 Mon Sep 17 00:00:00 2001
+From: Khiem Nguyen <khiem.nguyen.xt@renesas.com>
+Date: Tue, 9 Mar 2021 20:36:07 +0700
+Subject: [PATCH 18/70] arm64: dts: renesas: ebisu-4d_cr7_rproc: Add multiple
+ DRM layers
+
+Signed-off-by: Khiem Nguyen <khiem.nguyen.xt@renesas.com>
+---
+ .../boot/dts/renesas/ebisu-4d_cr7_rproc.dtsi  | 45 +++++++++++++++++--
+ 1 file changed, 41 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/renesas/ebisu-4d_cr7_rproc.dtsi b/arch/arm64/boot/dts/renesas/ebisu-4d_cr7_rproc.dtsi
+index ffd003da728e..fb4fc135e546 100644
+--- a/arch/arm64/boot/dts/renesas/ebisu-4d_cr7_rproc.dtsi
++++ b/arch/arm64/boot/dts/renesas/ebisu-4d_cr7_rproc.dtsi
+@@ -38,16 +38,53 @@ rvgc {
+ 		#address-cells = <2>;
+ 		#size-cells = <2>;
+ 
+-		nr-displays = <1>;
+-		display-mappings = <0>;
+-		display-layer = <4>;
+-
+ 		/* 1:1 mapping for the cma address space */
+ 		dma-ranges = <0x0 0x58000000 0x0 0x58000000 0x0 0x10000000>;
+ 
+ 		rvgc-memory {
+ 			memory-region = <&cma>;
+ 		};
++
++		displays {
++			display-0 {
++				display-map = <0x0>;
++				layers{
++					/* layer-map correspond to vpsd rpf (lower values are higher "z") */
++					primary{
++						layer-map=<0x4>;
++						size-w=<640>;
++						size-h=<480>;
++						pos-x=<100>;
++						pos-y=<100>;
++						/* override the default 0,0 position */
++						pos-override;
++						/* don't actually output the plane to vspd */
++						// no-scan;
++					};
++					overlay-0{
++						layer-map=<0x3>;
++						size-w=<640>;
++						size-h=<480>;
++						pos-x=<200>;
++						pos-y=<200>;
++					};
++					overlay-1{
++						layer-map=<0x2>;
++						size-w=<640>;
++						size-h=<480>;
++						pos-x=<300>;
++						pos-y=<300>;
++					};
++					overlay-2{
++						layer-map=<0x1>;
++						size-w=<640>;
++						size-h=<480>;
++						pos-x=<0>;
++						pos-y=<200>;
++					};
++				};
++			};
++		};
+ 	};
+ 
+ 	/* No longer accessible due to i2c0 use by CR7 */
+-- 
+2.25.1
+

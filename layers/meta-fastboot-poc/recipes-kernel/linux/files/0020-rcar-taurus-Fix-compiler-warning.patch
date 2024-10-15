@@ -1,0 +1,26 @@
+From 736b43e75c5ddb53404f51d92d885e260f3a70a3 Mon Sep 17 00:00:00 2001
+From: Khiem Nguyen <khiem.nguyen.xt@renesas.com>
+Date: Wed, 10 Mar 2021 08:33:06 +0700
+Subject: [PATCH 20/70] rcar-taurus: Fix compiler warning
+
+Signed-off-by: Khiem Nguyen <khiem.nguyen.xt@renesas.com>
+---
+ drivers/net/can/rcar-taurus/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/can/rcar-taurus/Kconfig b/drivers/net/can/rcar-taurus/Kconfig
+index 1e03248dc0ac..3c1897e41103 100644
+--- a/drivers/net/can/rcar-taurus/Kconfig
++++ b/drivers/net/can/rcar-taurus/Kconfig
+@@ -1,7 +1,7 @@
+ config CAN_RCAR_TAURUS
+ 	tristate "Renesas R-Car Taurus CAN driver"
+ 	depends on ARCH_RENESAS || ARM
+-	---help---
++	help
+ 	  Say Y here if you want to use the Renesas Taurus CAN virtual
+ 	  driver for R-Car Gen3 SoCs.
+ 
+-- 
+2.25.1
+

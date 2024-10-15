@@ -1,0 +1,48 @@
+From 90b9879925316af2b1d3a437eb333d779a9ae3fd Mon Sep 17 00:00:00 2001
+From: Nam Nguyen <nam.nguyen.yh@renesas.com>
+Date: Tue, 22 Mar 2022 17:04:05 +0700
+Subject: [PATCH 65/70] drivers: media: platform: rcar-vivid: rcar-vivid-v4l2:
+ Update fixed format for current use case
+
+Video format are fixed to 720x480 ABGR32 FIELD_NONE
+for this time being.
+
+Signed-off-by: Nam Nguyen <nam.nguyen.yh@renesas.com>
+Signed-off-by: Tam Nguyen <tam.nguyen.xa@renesas.com>
+---
+ drivers/media/platform/rcar-vivid/rcar-vivid-v4l2.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/rcar-vivid/rcar-vivid-v4l2.c b/drivers/media/platform/rcar-vivid/rcar-vivid-v4l2.c
+index 7d947f01ecee..1e0df90fec71 100644
+--- a/drivers/media/platform/rcar-vivid/rcar-vivid-v4l2.c
++++ b/drivers/media/platform/rcar-vivid/rcar-vivid-v4l2.c
+@@ -275,7 +275,6 @@ static int vivid_querycap(struct file *file, void *priv,
+     strlcpy(cap->card, "R_Car_VIVID", sizeof(cap->card));
+     snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
+          dev_name(vivid->dev));
+-    cap->capabilities = V4L2_CAP_DEVICE_CAPS | V4L2_CAP_VBI_CAPTURE | V4L2_CAP_STREAMING;
+     return 0;
+ }
+ 
+@@ -290,7 +289,17 @@ static int vivid_try_fmt_vid_cap(struct file *file, void *priv,
+     ret |= (f->fmt.pix.pixelformat!= vivid->format.pixelformat);
+     ret |= (f->fmt.pix.field != vivid->format.field);
+ 
++	pr_info("Capturing with: %dx%d, format:%d, field:%d\n",
++		f->fmt.pix.width, f->fmt.pix.height,
++		f->fmt.pix.pixelformat, f->fmt.pix.field);
++
+     if(ret) {
++	/* Right now only support 1 format
++	 * w:720, h:480, pf: 875713089(ABGR32), field: 1(NONE)
++	 */
++	pr_err("Support only: %dx%d, format:%d(ABGR32), field:%d(NONE)\n",
++		vivid->format.width, vivid->format.height,
++		vivid->format.pixelformat, vivid->format.field);
+         return -EPIPE;
+     }
+     f->fmt.pix.colorspace = vivid->format.colorspace;
+-- 
+2.25.1
+

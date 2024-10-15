@@ -1,0 +1,60 @@
+From 39056a8e476cdfad08b1de7b12b0e0db6c61071d Mon Sep 17 00:00:00 2001
+From: Phong Hoang <phong.hoang.wz@renesas.com>
+Date: Mon, 5 Apr 2021 19:58:56 +0700
+Subject: [PATCH 37/70] Fix building warning
+
+Temporarily, disable unused variable/functions.
+
+Signed-off-by: Phong Hoang <phong.hoang.wz@renesas.com>
+---
+ drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.c | 5 ++++-
+ drivers/remoteproc/rcar_cr7_remoteproc.c   | 2 +-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.c b/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.c
+index 0633e80bd3b3..7b9ce9087d06 100644
+--- a/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.c
++++ b/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.c
+@@ -276,6 +276,7 @@ static int rvgc_plane_atomic_check(struct drm_plane* plane,
+ 	return 0;
+ }
+ 
++#if 0
+ static int plane_not_changed_drm_send_event(struct drm_plane* plane,
+ 					    struct drm_plane_state* old_state) {
+ 	struct drm_plane_state* new_plane_state = plane->state;
+@@ -306,6 +307,7 @@ static int check_refresh_primary(struct drm_plane* plane) {
+ 	struct rcar_rvgc_device* rcrvgc          = dev_get_drvdata(ddev);
+ 	return ((plane_type == DRM_PLANE_TYPE_PRIMARY) && !rcrvgc->update_primary_plane);
+ }
++#endif
+ 
+ static void rvgc_plane_atomic_update(struct drm_plane* plane,
+ 				     struct drm_plane_state* old_state) {
+@@ -495,8 +497,9 @@ static int overlay_pipe_init(struct rcar_rvgc_device* rvgc_dev,
+ 
+ static int taurus_init(struct rcar_rvgc_device* rvgc_dev,
+ 		       struct rcar_rvgc_pipe* rvgc_pipe) {
+-
++#if 0
+ 	struct rcar_rvgc_device* rcrvgc = rvgc_pipe->rcar_rvgc_dev;
++#endif
+ 	int ret = 0;
+ 	struct taurus_rvgc_res_msg res_msg;
+ 
+diff --git a/drivers/remoteproc/rcar_cr7_remoteproc.c b/drivers/remoteproc/rcar_cr7_remoteproc.c
+index e6165d64223b..2c360856136e 100644
+--- a/drivers/remoteproc/rcar_cr7_remoteproc.c
++++ b/drivers/remoteproc/rcar_cr7_remoteproc.c
+@@ -153,7 +153,7 @@ static int rcar_cr7_rproc_start(struct rproc *rproc)
+ 	// Get Reset Controller node (RST)
+ 	mmio_rst_base = ioremap(RST_BASE, 4);
+ 	if (rproc->bootaddr & ~0xfffc0000)
+-		dev_warn(dev, "Boot address (0x%x) not aligned!\n", rproc->bootaddr);
++		dev_warn(dev, "Boot address (0x%llx) not aligned!\n", rproc->bootaddr);
+ 	regval = (rproc->bootaddr & 0xfffc0000); //Set Boot Addr
+ 	regval |= 0x10; //Enable BAR
+ 	iowrite32(regval, (mmio_rst_base + RST_CR7BAR_OFFSET));
+-- 
+2.25.1
+

@@ -1,0 +1,172 @@
+From 862e10480e77288bf09b91877335caa2631346be Mon Sep 17 00:00:00 2001
+From: Adam Bass <adam.bass@renesas.com>
+Date: Mon, 13 Jul 2020 20:21:27 +0000
+Subject: [PATCH 14/70] arm64: dts: Add Ebisu 4d cr7_rproc
+
+---
+ arch/arm64/boot/dts/renesas/Makefile          |   2 +
+ .../boot/dts/renesas/ebisu-4d_cr7_rproc.dtsi  | 100 ++++++++++++++++++
+ .../renesas/r8a77990-ebisu-4d_cr7_rproc.dts   |  11 ++
+ .../r8a77990-es10-ebisu-4d_cr7_rproc.dts      |  11 ++
+ 4 files changed, 124 insertions(+)
+ create mode 100644 arch/arm64/boot/dts/renesas/ebisu-4d_cr7_rproc.dtsi
+ create mode 100644 arch/arm64/boot/dts/renesas/r8a77990-ebisu-4d_cr7_rproc.dts
+ create mode 100644 arch/arm64/boot/dts/renesas/r8a77990-es10-ebisu-4d_cr7_rproc.dts
+
+diff --git a/arch/arm64/boot/dts/renesas/Makefile b/arch/arm64/boot/dts/renesas/Makefile
+index 57b6f03590ab..717f2bf6363c 100644
+--- a/arch/arm64/boot/dts/renesas/Makefile
++++ b/arch/arm64/boot/dts/renesas/Makefile
+@@ -65,7 +65,9 @@ dtb-$(CONFIG_ARCH_R8A77980) += r8a77980-v3hsk.dtb
+ 
+ dtb-$(CONFIG_ARCH_R8A77990) += r8a77990-ebisu.dtb
+ dtb-$(CONFIG_ARCH_R8A77990) += r8a77990-ebisu-4d.dtb
++dtb-$(CONFIG_ARCH_R8A77990) += r8a77990-ebisu-4d_cr7_rproc.dtb
+ dtb-$(CONFIG_ARCH_R8A77990) += r8a77990-es10-ebisu.dtb r8a77990-es10-ebisu-4d.dtb
++dtb-$(CONFIG_ARCH_R8A77990) += r8a77990-es10-ebisu-4d_cr7_rproc.dtb
+ 
+ dtb-$(CONFIG_ARCH_R8A77995) += r8a77995-draak.dtb
+ 
+diff --git a/arch/arm64/boot/dts/renesas/ebisu-4d_cr7_rproc.dtsi b/arch/arm64/boot/dts/renesas/ebisu-4d_cr7_rproc.dtsi
+new file mode 100644
+index 000000000000..41c8e248460f
+--- /dev/null
++++ b/arch/arm64/boot/dts/renesas/ebisu-4d_cr7_rproc.dtsi
+@@ -0,0 +1,100 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * Device Tree Source for the Ebisu-4D board
++ *
++ * Copyright (C) 2020 Renesas Electronics Corp.
++ */
++
++/ {
++	aliases {
++		/delete-property/ i2c0;
++	};
++
++	cpus {
++		/delete-property/ idle-states;
++	};
++
++	reserved-memory {
++		cma: linux,cma@58000000 {
++			compatible = "shared-dma-pool";
++			reusable;
++			reg = <0x0 0x58000000 0x0 0x14000000>;
++			linux,cma-default;
++		};
++
++		/delete-node/ linux,multimedia@68000000;
++
++		mmp_reserved: linux,multimedia@6c000000 {
++			compatible = "shared-dma-pool";
++			reusable;
++			reg = <0x0 0x6c000000 0x0 0x4000000>;
++		};
++
++		cr7: linux,cr7@70000000 {
++			compatible = "shared-dma-pool";
++			no-map;
++			reg = <0x0 0x70000000 0x0 0x10000000>;
++		};
++	};
++
++	cr7 {
++		compatible = "renesas,rcar-cr7";
++		memory-region = <&cr7>;
++	};
++
++	rvgc {
++		#address-cells = <0x2>;
++		#size-cells = <0x2>;
++
++		nr-displays = <0x1>;
++		display-mappings = <0x0>;
++		display-layer = <0x4>;
++
++		// dma-ranges = <0x0 0x58000000 0x0 0x58000000 0x0 0x18000000>;
++		dma-ranges = <0x0 0x0 0x0 0x0 0x1 0x0>;
++
++		rvgc-memory {
++			memory-region = <&cma>;
++		};
++	};
++
++	/delete-node/ cvbs-in;
++	/delete-node/ hdmi-in;
++	/delete-node/ hdmi-out;
++	/delete-node/ lvds-decoder;
++	/delete-node/ lvds0;
++	/delete-node/ lvds1;
++	/delete-node/ vga;
++	/delete-node/ vga-encoder;
++};
++
++&csi40 {
++	/delete-property/ status;
++
++	ports {
++		/delete-node/ port@0;
++	};
++};
++
++&soc {
++	mfis: mfis@e6260000 {
++		compatible = "renesas,mfis";
++		reg = <0x00 0xe6260000 0x00 0x200>;
++		interrupts = <0x00 0xe0 0x04 0x00 0xe1 0x04 0x00 0xe2 0x04 0x00 0xe3 0x04 0x00 0xe4 0x04 0x00 0xe5 0x04 0x00 0xe6 0x04 0x00 0xe7 0x04>;
++		interrupt-names = "eicr0\0eicr1\0eicr2\0eicr3\0eicr4\0eicr5\0eicr6\0eicr7";
++		renesas,mfis-channels = <0x00 0x01 0x02 0x03>;
++		status = "okay";
++
++		/delete-node/ mfis-as;
++	};
++};
++
++/delete-node/ &i2c0;
++/delete-node/ &fcpvd0;
++/delete-node/ &fcpvd1;
++/delete-node/ &vspd0;
++/delete-node/ &vspd1;
++/delete-node/ &du;
++/delete-node/ &lvds0;
++/delete-node/ &lvds1;
++
+diff --git a/arch/arm64/boot/dts/renesas/r8a77990-ebisu-4d_cr7_rproc.dts b/arch/arm64/boot/dts/renesas/r8a77990-ebisu-4d_cr7_rproc.dts
+new file mode 100644
+index 000000000000..01d0a393ffa0
+--- /dev/null
++++ b/arch/arm64/boot/dts/renesas/r8a77990-ebisu-4d_cr7_rproc.dts
+@@ -0,0 +1,11 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * Device Tree Source for the Ebisu-4D board
++ *
++ * Copyright (C) 2020 Renesas Electronics Corp.
++ */
++
++/dts-v1/;
++#include "r8a77990-ebisu-4d.dts"
++#include "ebisu-4d_cr7_rproc.dtsi"
++
+diff --git a/arch/arm64/boot/dts/renesas/r8a77990-es10-ebisu-4d_cr7_rproc.dts b/arch/arm64/boot/dts/renesas/r8a77990-es10-ebisu-4d_cr7_rproc.dts
+new file mode 100644
+index 000000000000..5891bdde6b2f
+--- /dev/null
++++ b/arch/arm64/boot/dts/renesas/r8a77990-es10-ebisu-4d_cr7_rproc.dts
+@@ -0,0 +1,11 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * Device Tree Source for the Ebisu-4D board
++ *
++ * Copyright (C) 2020 Renesas Electronics Corp.
++ */
++
++/dts-v1/;
++#include "r8a77990-es10-ebisu-4d.dts"
++#include "ebisu-4d_cr7_rproc.dtsi"
++
+-- 
+2.25.1
+

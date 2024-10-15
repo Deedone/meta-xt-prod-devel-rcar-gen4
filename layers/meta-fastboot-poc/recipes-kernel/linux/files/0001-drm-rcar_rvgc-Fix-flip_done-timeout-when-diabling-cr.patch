@@ -1,0 +1,189 @@
+From 4205bb754e9b4d091821328fabd9d05f26feeaa6 Mon Sep 17 00:00:00 2001
+From: Joe Lindlbauer <joe.lindlbauer.rj@renesas.com>
+Date: Mon, 23 Sep 2024 16:26:24 -0400
+Subject: [PATCH 1/2] drm: rcar_rvgc: Fix flip_done timeout when diabling crtc
+
+Add flip_wait signal and update vblank_event with crtc->state->event for crtc disable
+Sends the appropriate signal when disabling the crtc and preventing the timeout from drm helper
+---
+ drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.c  |  1 +
+ drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.h  |  3 +
+ drivers/gpu/drm/rcar-rvgc/rcar_rvgc_kms.c  | 23 +-------
+ drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.c | 66 +++++++++++++++++++++-
+ drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.h |  1 +
+ 5 files changed, 72 insertions(+), 22 deletions(-)
+
+diff --git a/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.c b/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.c
+index 9455a64b19cc..0ea17529cc3f 100644
+--- a/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.c
++++ b/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.c
+@@ -252,6 +252,7 @@ static int rcar_rvgc_probe(struct rpmsg_device* rpdev) {
+ 	rwlock_init(&rcrvgc->event_list_lock);
+ 
+ 	init_waitqueue_head(&rcrvgc->vblank_pending_wait_queue);
++	init_waitqueue_head(&rcrvgc->flip_wait);
+ 
+ 	/* Init device memory.
+ 	 *
+diff --git a/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.h b/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.h
+index e2b94882524a..e526c77b12d4 100644
+--- a/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.h
++++ b/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.h
+@@ -46,6 +46,9 @@ struct rcar_rvgc_device {
+ 	wait_queue_head_t vblank_enable_wait_queue;
+ 	atomic_t global_vblank_enable;
+ 
++	/* needed for flip_done */
++	wait_queue_head_t flip_wait;
++
+ 	struct task_struct* vsync_thread;
+ 
+ 	struct list_head taurus_event_list_head;
+diff --git a/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_kms.c b/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_kms.c
+index 858f66f39a41..abcb11e045b9 100644
+--- a/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_kms.c
++++ b/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_kms.c
+@@ -69,14 +69,11 @@ static struct drm_framebuffer* rcar_rvgc_fb_create(struct drm_device* dev, struc
+ /********** VBlank Handling **********/
+ static int vsync_thread_fn(void* data) {
+ 	struct rcar_rvgc_device* rcrvgc = (struct rcar_rvgc_device*)data;
+-	struct drm_crtc* crtc;
+ 	struct rcar_rvgc_pipe* rvgc_pipe;
+ 	unsigned int nr_rvgc_pipes = rcrvgc->nr_rvgc_pipes;
+ 	int i;
+ 	int pipe_vblk_pending;
+ 	unsigned int display_idx;
+-	struct drm_pending_vblank_event* event;
+-	unsigned long flags;
+ 
+ 	while (!kthread_should_stop()) {
+ 
+@@ -87,30 +84,14 @@ static int vsync_thread_fn(void* data) {
+ 		for (i = 0; i < nr_rvgc_pipes; i++) {
+ 			rvgc_pipe = &rcrvgc->rvgc_pipes[i];
+ 			display_idx = rvgc_pipe->display_mapping;
+-			;
+ 
+ 			pipe_vblk_pending = test_and_clear_bit(display_idx, (long unsigned int*)&rcrvgc->vblank_pending);
+ 
+ 			if (pipe_vblk_pending && rvgc_pipe->vblank_enabled) {
+ 				/* TODO: removed simple pipe here nothing else need to be done here */
+-				crtc = &rvgc_pipe->crtc;
+-
+-				drm_crtc_handle_vblank(crtc);
+-
+-				spin_lock_irqsave(&crtc->dev->event_lock, flags);
+-				event = rvgc_pipe->event;
+-				rvgc_pipe->event = NULL;
+-				spin_unlock_irqrestore(&crtc->dev->event_lock, flags);
+-
+-				if (event == NULL)
++				drm_crtc_handle_vblank(&rvgc_pipe->crtc);
++				if (rvgc_crtc_finish_page_flip(rvgc_pipe))
+ 					continue;
+-
+-				spin_lock_irqsave(&crtc->dev->event_lock, flags);
+-				drm_crtc_send_vblank_event(crtc, event);
+-				spin_unlock_irqrestore(&crtc->dev->event_lock, flags);
+-
+-				/* JMB: Where is corresponding "get" ? */
+-				// drm_crtc_vblank_put(crtc);
+ 			}
+ 		}
+ 	}
+diff --git a/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.c b/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.c
+index a58db841a268..af82dfcd8855 100644
+--- a/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.c
++++ b/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.c
+@@ -205,12 +205,76 @@ static void rvgc_crtc_enable(struct drm_crtc* crtc,
+ 	drm_crtc_vblank_get(crtc);
+ }
+ 
++/* Page Flip
++ * 	true: no vblank event
++ * 	false: vbank event sent
++ */
++bool rvgc_crtc_finish_page_flip(struct rcar_rvgc_pipe* rvgc_pipe)
++{
++	struct drm_pending_vblank_event *event;
++	struct rcar_rvgc_device* rcrvgc = rvgc_pipe->rcar_rvgc_dev;
++	struct drm_device *dev = rcrvgc->ddev;
++	struct drm_crtc *crtc = &rvgc_pipe->crtc;
++	unsigned long flags;
++
++	spin_lock_irqsave(&dev->event_lock, flags);
++	event = rvgc_pipe->event;
++	rvgc_pipe->event = NULL;
++	spin_unlock_irqrestore(&dev->event_lock, flags);
++
++	if (event == NULL)
++		return true;
++
++	spin_lock_irqsave(&dev->event_lock, flags);
++	drm_crtc_send_vblank_event(crtc, event);
++	wake_up(&rcrvgc->flip_wait);
++	spin_unlock_irqrestore(&dev->event_lock, flags);
++	return false;
++}
++
++static bool rvgc_crtc_page_flip_pending(struct rcar_rvgc_pipe* rvgc_pipe)
++{
++	struct drm_device *dev = rvgc_pipe->rcar_rvgc_dev->ddev;
++	unsigned long flags;
++	bool pending;
++
++	spin_lock_irqsave(&dev->event_lock, flags);
++	pending = rvgc_pipe->event != NULL;
++	spin_unlock_irqrestore(&dev->event_lock, flags);
++
++	return pending;
++}
++
++static void rvgc_crtc_wait_page_flip(struct drm_crtc *crtc)
++{
++	struct rcar_rvgc_pipe* rvgc_pipe = container_of(crtc, struct rcar_rvgc_pipe, crtc);
++	struct rcar_rvgc_device* rcrvgc = rvgc_pipe->rcar_rvgc_dev;
++	unsigned long flags;
++
++	if (crtc->state->event) {
++		spin_lock_irqsave(&crtc->dev->event_lock, flags);
++		rvgc_pipe->event = crtc->state->event;
++		crtc->state->event = NULL;
++		spin_unlock_irqrestore(&crtc->dev->event_lock, flags);
++	}
++
++	if (wait_event_timeout(rcrvgc->flip_wait,
++			       !rvgc_crtc_page_flip_pending(rvgc_pipe),
++			       msecs_to_jiffies(50)))
++		return;
++
++	dev_warn(rcrvgc->dev, "page flip timeout\n");
++
++	(void)rvgc_crtc_finish_page_flip(rvgc_pipe);
++}
++
+ static void rvgc_crtc_disable(struct drm_crtc *crtc,
+ 			      struct drm_crtc_state *old_state)
+ {
+ 	//printk(KERN_ERR "%s():%d", __FUNCTION__, __LINE__);
+-	drm_crtc_vblank_off(crtc);
++	rvgc_crtc_wait_page_flip(crtc);
+ 	drm_crtc_vblank_put(crtc);
++	drm_crtc_vblank_off(crtc);
+ }
+ 
+ static void rvgc_crtc_atomic_flush(struct drm_crtc *crtc,
+diff --git a/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.h b/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.h
+index e3fcbe985da7..c6d42c6db2cf 100644
+--- a/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.h
++++ b/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.h
+@@ -53,5 +53,6 @@ struct rcar_rvgc_pipe {
+ 
+ int rcar_rvgc_pipe_init(struct rcar_rvgc_device* rvgc_dev, struct rcar_rvgc_pipe* rvgc_pipe);
+ struct rcar_rvgc_pipe* rvgc_pipe_find(struct rcar_rvgc_device* rcrvgc, unsigned int pipe_idx);
++bool rvgc_crtc_finish_page_flip(struct rcar_rvgc_pipe* rvgc_pipe);
+ 
+ #endif /* __RCAR_RVGC_PIPE_H__ */
+-- 
+2.43.2
+

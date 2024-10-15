@@ -1,0 +1,11 @@
+[Unit]
+Description=DRM Color bar Application
+Before=rc.pvr.service
+
+[Service]
+ExecStartPre=/etc/init.d/load_rvgc.sh
+ExecStart=/bin/bash -c echo "Loaded RVGC"
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

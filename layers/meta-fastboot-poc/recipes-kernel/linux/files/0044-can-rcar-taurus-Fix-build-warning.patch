@@ -1,0 +1,31 @@
+From a6ab2f470229a8a763edab226c6e2270d93f02aa Mon Sep 17 00:00:00 2001
+From: Phong Hoang <phong.hoang.wz@renesas.com>
+Date: Sat, 7 Aug 2021 14:40:51 +0700
+Subject: [PATCH 44/70] can: rcar-taurus: Fix build warning
+
+This patch fixes following sparse tool warning
+
+- make C=2 CF="-Wsparse-all -D__CHECK_ENDIAN__"
+ warning: Using plain integer as NULL pointer
+
+Signed-off-by: Phong Hoang <phong.hoang.wz@renesas.com>
+---
+ drivers/net/can/rcar-taurus/rcar_taurus_can.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/can/rcar-taurus/rcar_taurus_can.c b/drivers/net/can/rcar-taurus/rcar_taurus_can.c
+index d94f53bfad99..378da0005eb2 100644
+--- a/drivers/net/can/rcar-taurus/rcar_taurus_can.c
++++ b/drivers/net/can/rcar-taurus/rcar_taurus_can.c
+@@ -538,7 +538,7 @@ static int rcar_taurus_can_init_ch(struct rcar_taurus_can_drv *rctcan, int ch_id
+ 	if (err) {
+ 		dev_err(&rpdev->dev, "register_candev() failed, error %d\n",
+ 			err);
+-		rctcan->channels[ch_id] = 0;
++		rctcan->channels[ch_id] = NULL;
+ 		goto fail_candev;
+ 	}
+ 
+-- 
+2.25.1
+

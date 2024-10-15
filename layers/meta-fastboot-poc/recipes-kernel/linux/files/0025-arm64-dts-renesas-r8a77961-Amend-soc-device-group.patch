@@ -1,0 +1,26 @@
+From a77b9b671077eb87ba98b45520527653c8667f21 Mon Sep 17 00:00:00 2001
+From: Khiem Nguyen <khiem.nguyen.xt@renesas.com>
+Date: Wed, 10 Mar 2021 19:23:16 +0700
+Subject: [PATCH 25/70] arm64: dts: renesas: r8a77961: Amend soc device group
+
+Signed-off-by: Khiem Nguyen <khiem.nguyen.xt@renesas.com>
+---
+ arch/arm64/boot/dts/renesas/r8a77961.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm64/boot/dts/renesas/r8a77961.dtsi b/arch/arm64/boot/dts/renesas/r8a77961.dtsi
+index 5b939f89164d..f0187b4fbd7f 100644
+--- a/arch/arm64/boot/dts/renesas/r8a77961.dtsi
++++ b/arch/arm64/boot/dts/renesas/r8a77961.dtsi
+@@ -793,7 +793,7 @@ scif_clk: scif {
+ 		clock-frequency = <0>;
+ 	};
+ 
+-	soc {
++	soc: soc {
+ 		compatible = "simple-bus";
+ 		interrupt-parent = <&gic>;
+ 		#address-cells = <2>;
+-- 
+2.25.1
+

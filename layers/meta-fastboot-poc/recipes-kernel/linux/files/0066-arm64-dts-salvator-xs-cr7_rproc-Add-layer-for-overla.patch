@@ -1,0 +1,44 @@
+From 2b785266623f6a9dc243011b0c1ec8be48ff9963 Mon Sep 17 00:00:00 2001
+From: Tam Nguyen <tam.nguyen.xa@renesas.com>
+Date: Thu, 24 Mar 2022 16:54:33 +0700
+Subject: [PATCH 66/70] arm64: dts: salvator-xs: cr7_rproc: Add layer for
+ overlay
+
+This patch to add layer for overlay to support
+for Para-DRM.
+
+Signed-off-by: Tam Nguyen <tam.nguyen.xa@renesas.com>
+---
+ arch/arm64/boot/dts/renesas/salvator-xs_cr7_rproc.dtsi | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/renesas/salvator-xs_cr7_rproc.dtsi b/arch/arm64/boot/dts/renesas/salvator-xs_cr7_rproc.dtsi
+index 738bf5a1ab4e..61a313a98c70 100644
+--- a/arch/arm64/boot/dts/renesas/salvator-xs_cr7_rproc.dtsi
++++ b/arch/arm64/boot/dts/renesas/salvator-xs_cr7_rproc.dtsi
+@@ -68,6 +68,7 @@ primary{
+ 						pos-y=<60>;	// (720 - 600)/2
+ 						pos-override;
+ 					};
++
+ 					overlay-0 {
+ 						layer-map = <0x2>;
+ 						size-w = <640>;
+@@ -83,6 +84,14 @@ overlay-1 {
+ 						pos-x = <300>;
+ 						pos-y = <300>;
+ 					};
++
++					overlay-2 {
++						layer-map=<0x3>;
++						size-w=<640>;
++						size-h=<480>;
++						pos-x=<0>;
++						pos-y=<200>;
++					};
+ 				};
+ 			};
+ 		};
+-- 
+2.25.1
+

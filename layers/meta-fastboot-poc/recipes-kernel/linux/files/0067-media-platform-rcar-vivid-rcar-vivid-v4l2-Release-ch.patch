@@ -1,0 +1,29 @@
+From 2158fe72cb3477985e2c6b291a2f9e851650f1a0 Mon Sep 17 00:00:00 2001
+From: Nam Nguyen <nam.nguyen.yh@renesas.com>
+Date: Thu, 31 Mar 2022 14:00:17 +0700
+Subject: [PATCH 67/70] media: platform: rcar-vivid: rcar-vivid-v4l2: Release
+ channel after finish capture
+
+R_TAURUS_CMD_IOCTL/CAMERA_PROTOCOL_IOC_CHANNEL_RELEASE is required
+in order to re-init the channel for the next capture.
+
+Signed-off-by: Nam Nguyen <nam.nguyen.yh@renesas.com>
+---
+ drivers/media/platform/rcar-vivid/rcar-vivid-v4l2.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/platform/rcar-vivid/rcar-vivid-v4l2.c b/drivers/media/platform/rcar-vivid/rcar-vivid-v4l2.c
+index 1e0df90fec71..53f958832b6b 100644
+--- a/drivers/media/platform/rcar-vivid/rcar-vivid-v4l2.c
++++ b/drivers/media/platform/rcar-vivid/rcar-vivid-v4l2.c
+@@ -449,6 +449,7 @@ static void vivid_capture_stop(struct vivid_v4l2_device *vivid)
+ {
+     struct taurus_camera_res_msg res_msg;
+     vivid_taurus_channel_stop(vivid, &res_msg);
++    vivid_taurus_channel_release(vivid, &res_msg);
+     return;
+ }
+ static int vivid_capture_start(struct vivid_v4l2_device *vivid)
+-- 
+2.25.1
+

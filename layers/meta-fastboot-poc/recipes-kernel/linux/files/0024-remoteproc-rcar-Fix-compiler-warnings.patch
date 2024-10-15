@@ -1,0 +1,38 @@
+From 3c0d96f123c70fe52bfbe30de3692f2e3a655d55 Mon Sep 17 00:00:00 2001
+From: Khiem Nguyen <khiem.nguyen.xt@renesas.com>
+Date: Wed, 10 Mar 2021 19:05:24 +0700
+Subject: [PATCH 24/70] remoteproc: rcar: Fix compiler warnings
+
+This patch fixes the compiler warnings due to incompatible
+with the function callback prototypes.
+
+Signed-off-by: Khiem Nguyen <khiem.nguyen.xt@renesas.com>
+---
+ drivers/remoteproc/rcar_cr7_remoteproc.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/remoteproc/rcar_cr7_remoteproc.c b/drivers/remoteproc/rcar_cr7_remoteproc.c
+index 91833a3f4eb5..e6165d64223b 100644
+--- a/drivers/remoteproc/rcar_cr7_remoteproc.c
++++ b/drivers/remoteproc/rcar_cr7_remoteproc.c
+@@ -225,7 +225,7 @@ static void rcar_cr7_rproc_kick(struct rproc *rproc, int vqid)
+ 	}
+ }
+ 
+-static void *rcar_cr7_da_to_va(struct rproc *rproc, u64 da, int len)
++static void *rcar_cr7_da_to_va(struct rproc *rproc, u64 da, size_t len)
+ {
+ 	struct rcar_cr7_rproc *rrproc = rproc->priv;
+ 	int offset;
+@@ -268,7 +268,7 @@ static int rcar_cr7_rproc_elf_sanity_check(struct rproc *rproc,
+ 	return rproc_elf_sanity_check(rproc, fw);
+ }
+ 
+-static u32 rcar_cr7_rproc_elf_get_boot_addr(struct rproc *rproc,
++static u64 rcar_cr7_rproc_elf_get_boot_addr(struct rproc *rproc,
+ 					    const struct firmware *fw)
+ {
+ 	return rproc_elf_get_boot_addr(rproc, fw);
+-- 
+2.25.1
+

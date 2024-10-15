@@ -1,0 +1,27 @@
+From 3e215a5835aa726c3b279b889e498c71d7b86e47 Mon Sep 17 00:00:00 2001
+From: Phong Hoang <phong.hoang.wz@renesas.com>
+Date: Tue, 6 Jul 2021 21:57:46 +0700
+Subject: [PATCH 41/70] arm64: defconfig: Add Para-VIN driver configuration
+
+This patch adds configurations of Para-VIN (RCAR_VIVID).
+
+Signed-off-by: Phong Hoang <phong.hoang.wz@renesas.com>
+---
+ arch/arm64/configs/defconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm64/configs/defconfig b/arch/arm64/configs/defconfig
+index fd5fd9af780d..6d7f28be63a1 100644
+--- a/arch/arm64/configs/defconfig
++++ b/arch/arm64/configs/defconfig
+@@ -621,6 +621,7 @@ CONFIG_V4L_PLATFORM_DRIVERS=y
+ CONFIG_VIDEO_RCAR_ISP=y
+ CONFIG_VIDEO_RCAR_CSI2=y
+ CONFIG_VIDEO_RCAR_VIN=y
++CONFIG_VIDEO_RCAR_VIVID=m
+ CONFIG_VIDEO_SUN6I_CSI=m
+ CONFIG_V4L_MEM2MEM_DRIVERS=y
+ CONFIG_VIDEO_SAMSUNG_S5P_JPEG=m
+-- 
+2.25.1
+

@@ -1,0 +1,26 @@
+From b5d9c819aac40076a8e286193945701b1e3b8637 Mon Sep 17 00:00:00 2001
+From: Khiem Nguyen <khiem.nguyen.xt@renesas.com>
+Date: Mon, 8 Mar 2021 17:59:54 +0700
+Subject: [PATCH 36/70] Enable configs from cr7_virt.cfg
+
+Signed-off-by: Khiem Nguyen <khiem.nguyen.xt@renesas.com>
+---
+ arch/arm64/configs/defconfig | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/arch/arm64/configs/defconfig b/arch/arm64/configs/defconfig
+index be5299740876..fd5fd9af780d 100644
+--- a/arch/arm64/configs/defconfig
++++ b/arch/arm64/configs/defconfig
+@@ -1114,3 +1114,8 @@ CONFIG_DEBUG_KERNEL=y
+ # CONFIG_DEBUG_PREEMPT is not set
+ # CONFIG_FTRACE is not set
+ CONFIG_MEMTEST=y
++CONFIG_RCAR_MFIS=y
++CONFIG_DRM_RCAR_RVGC=m
++CONFIG_RCAR_CR7_REMOTEPROC=m
++CONFIG_RPMSG_VIRTIO=m
++CONFIG_DYNAMIC_DEBUG=y
+-- 
+2.25.1
+

@@ -1,0 +1,41 @@
+From 4387f744158c8360d275bc55a89183e2464ae3f3 Mon Sep 17 00:00:00 2001
+From: Takeshi Kihara <takeshi.kihara.df@renesas.com>
+Date: Thu, 4 Nov 2021 13:41:42 +0900
+Subject: [PATCH 47/70] arm64: dts: salvator-xs: cr7_rproc: multi-layer sample
+
+Adding multi-layer sample for Para-DRM.
+
+Signed-off-by: Takeshi Kihara <takeshi.kihara.df@renesas.com>
+---
+ .../boot/dts/renesas/salvator-xs_cr7_rproc.dtsi   | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/renesas/salvator-xs_cr7_rproc.dtsi b/arch/arm64/boot/dts/renesas/salvator-xs_cr7_rproc.dtsi
+index cf62968ce698..f176b0ce9082 100644
+--- a/arch/arm64/boot/dts/renesas/salvator-xs_cr7_rproc.dtsi
++++ b/arch/arm64/boot/dts/renesas/salvator-xs_cr7_rproc.dtsi
+@@ -68,6 +68,21 @@ primary{
+ 						pos-y=<60>;	// (720 - 600)/2
+ 						pos-override;
+ 					};
++					overlay-0 {
++						layer-map = <0x2>;
++						size-w = <640>;
++						size-h = <480>;
++						pos-x = <200>;
++						pos-y = <200>;
++					};
++
++					overlay-1 {
++						layer-map = <0x1>;
++						size-w = <640>;
++						size-h = <480>;
++						pos-x = <300>;
++						pos-y = <300>;
++					};
+ 				};
+ 			};
+ 		};
+-- 
+2.25.1
+

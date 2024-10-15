@@ -1,0 +1,31 @@
+From 2bc30e4b8b4895b168593cefc1c23146cc48a5d8 Mon Sep 17 00:00:00 2001
+From: Khiem Nguyen <khiem.nguyen.xt@renesas.com>
+Date: Wed, 10 Mar 2021 17:03:56 +0700
+Subject: [PATCH 28/70] drm: rcar-rvgc: Remove DRIVER_PRIME feature
+
+The DRIVER_PRIME feature has been moved since v5.2
+as commit 0424fdaf88 (drm/prime: Actually remove DRIVER_PRIME everywhere).
+Hence, this patch applied the change similar to rcar-du driver.
+
+Signed-off-by: Khiem Nguyen <khiem.nguyen.xt@renesas.com>
+---
+ drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.c b/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.c
+index bdd6a68ac946..04529f9dbbd2 100644
+--- a/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.c
++++ b/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.c
+@@ -128,8 +128,7 @@ static int rcar_rvgc_dumb_create(struct drm_file* file, struct drm_device* dev,
+ DEFINE_DRM_GEM_CMA_FOPS(rcar_rvgc_fops);
+ 
+ static struct drm_driver rcar_rvgc_driver = {
+-	.driver_features	= DRIVER_GEM | DRIVER_MODESET | DRIVER_PRIME
+-	| DRIVER_ATOMIC,
++	.driver_features	= DRIVER_GEM | DRIVER_MODESET | DRIVER_ATOMIC,
+ 	.gem_free_object_unlocked = drm_gem_cma_free_object,
+ 	.gem_vm_ops		= &drm_gem_cma_vm_ops,
+ 	.prime_handle_to_fd	= drm_gem_prime_handle_to_fd,
+-- 
+2.25.1
+

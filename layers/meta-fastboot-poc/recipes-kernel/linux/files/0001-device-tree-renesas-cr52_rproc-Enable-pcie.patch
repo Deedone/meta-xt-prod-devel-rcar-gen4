@@ -1,0 +1,25 @@
+From aba3d753a0afe05fbb60a19d7c9b8c205bacfe85 Mon Sep 17 00:00:00 2001
+From: Joe Lindlbauer <joe.lindlbauer.rj@renesas.com>
+Date: Tue, 1 Oct 2024 20:05:30 -0400
+Subject: [PATCH 1/2] device-tree: renesas: cr52_rproc: Enable pcie
+
+---
+ arch/arm64/boot/dts/renesas/whitehawk_cr52_rproc.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm64/boot/dts/renesas/whitehawk_cr52_rproc.dtsi b/arch/arm64/boot/dts/renesas/whitehawk_cr52_rproc.dtsi
+index 737d18dca1e7..63b1b2a3d920 100644
+--- a/arch/arm64/boot/dts/renesas/whitehawk_cr52_rproc.dtsi
++++ b/arch/arm64/boot/dts/renesas/whitehawk_cr52_rproc.dtsi
+@@ -130,7 +130,7 @@ &i2c4 {
+ ///delete-node/ &i2c0;
+ ///delete-node/ &i2c1;
+ ///delete-node/ &i2c4;
+-/delete-node/ &pciec0;
++///delete-node/ &pciec0;
+ 
+ /delete-node/ &dsi0;
+ /delete-node/ &dsi1;
+-- 
+2.43.2
+

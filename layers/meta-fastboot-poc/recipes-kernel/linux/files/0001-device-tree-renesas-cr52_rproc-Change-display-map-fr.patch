@@ -1,0 +1,26 @@
+From 9ca8faf30d9e217048e085ae9d738f9fd8555698 Mon Sep 17 00:00:00 2001
+From: Joe Lindlbauer <joe.lindlbauer.rj@renesas.com>
+Date: Thu, 22 Aug 2024 10:09:28 -0400
+Subject: [PATCH] device-tree: renesas: cr52_rproc: Change display-map from 1
+ to 0
+
+---
+ arch/arm64/boot/dts/renesas/whitehawk_cr52_rproc.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm64/boot/dts/renesas/whitehawk_cr52_rproc.dtsi b/arch/arm64/boot/dts/renesas/whitehawk_cr52_rproc.dtsi
+index 6b002c8ffdc9..77fe9930ea1c 100644
+--- a/arch/arm64/boot/dts/renesas/whitehawk_cr52_rproc.dtsi
++++ b/arch/arm64/boot/dts/renesas/whitehawk_cr52_rproc.dtsi
+@@ -45,7 +45,7 @@ rvgc-memory {
+ 
+ 		displays {
+ 			display-0 {
+-				display-map = <1>;
++				display-map = <0>;
+ 				layers {
+ 					primary{
+ 						/* Position the layer in the centre of a 1920x720 display */
+-- 
+2.43.2
+

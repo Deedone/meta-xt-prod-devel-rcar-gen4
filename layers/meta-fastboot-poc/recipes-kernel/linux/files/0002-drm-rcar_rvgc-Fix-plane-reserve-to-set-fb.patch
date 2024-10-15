@@ -1,0 +1,24 @@
+From 7234fefbc2af0c899174e375d954a4c3a6892cd7 Mon Sep 17 00:00:00 2001
+From: Joe Lindlbauer <joe.lindlbauer.rj@renesas.com>
+Date: Tue, 1 Oct 2024 20:07:56 -0400
+Subject: [PATCH 2/2] drm: rcar_rvgc: Fix plane reserve to set fb
+
+---
+ drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.c b/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.c
+index af82dfcd8855..f9e478e8d306 100644
+--- a/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.c
++++ b/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.c
+@@ -454,7 +454,6 @@ static void rvgc_plane_atomic_update(struct drm_plane* plane,
+ 				dev_err(rcrvgc->dev, "%s(): rvgc_taurus_layer_set_position(display=%d, id=%d, layer=%d) failed\n",
+ 					__FUNCTION__, display_idx, plane->base.id, hw_plane);
+ 			}
+-			return;
+ 		} 
+ 
+ 		/* don't proceed from here if we don't actually have plane */
+-- 
+2.43.2
+

@@ -1,0 +1,34 @@
+From 2da0f2c54f5a2d247e2ec0522a7c5ed86e1e107b Mon Sep 17 00:00:00 2001
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Date: Mon, 21 Feb 2022 19:13:39 +0200
+Subject: [PATCH 61/70] drm: rcar-du: Don't select VSP1 sink on Gen3
+
+The VSP1 sink selection through register DEFR8 is only available on Gen2
+hardware. Skip it on Gen3.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: LUU HOAI <hoai.luu.ub@renesas.com>
+---
+ drivers/gpu/drm/rcar-du/rcar_du_plane.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_plane.c b/drivers/gpu/drm/rcar-du/rcar_du_plane.c
+index e15de8ee284f..e68245831373 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_plane.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_plane.c
+@@ -565,8 +565,10 @@ void __rcar_du_plane_setup(struct rcar_du_group *rgrp,
+ 		rcar_du_plane_setup_format(rgrp, (state->hwindex + 1) % 8,
+ 					   state);
+ 
+-	if (rcdu->info->gen < 3)
+-		rcar_du_plane_setup_scanout(rgrp, state);
++	if (rcdu->info->gen >= 3)
++		return;
++
++	rcar_du_plane_setup_scanout(rgrp, state);
+ 
+ 	if (state->source == RCAR_DU_PLANE_VSPD1) {
+ 		unsigned int vspd1_sink = rgrp->index ? 2 : 0;
+-- 
+2.25.1
+

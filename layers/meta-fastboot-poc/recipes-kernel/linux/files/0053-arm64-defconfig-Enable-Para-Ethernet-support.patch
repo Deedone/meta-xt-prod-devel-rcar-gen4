@@ -1,0 +1,27 @@
+From a281d6b6c9d8dfa699cf53c3872852f8cf257939 Mon Sep 17 00:00:00 2001
+From: Phong Hoang <phong.hoang.wz@renesas.com>
+Date: Fri, 11 Mar 2022 16:47:21 +0700
+Subject: [PATCH 53/70] arm64: defconfig: Enable Para-Ethernet support
+
+This patch enables Para Virtualized Ethernet driver.
+
+Signed-off-by: Phong Hoang <phong.hoang.wz@renesas.com>
+---
+ arch/arm64/configs/defconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm64/configs/defconfig b/arch/arm64/configs/defconfig
+index adbd3160ef33..c7268af2fa28 100644
+--- a/arch/arm64/configs/defconfig
++++ b/arch/arm64/configs/defconfig
+@@ -339,6 +339,7 @@ CONFIG_QCOM_EMAC=m
+ CONFIG_RMNET=m
+ CONFIG_SH_ETH=y
+ CONFIG_RAVB=y
++CONFIG_ETHER_RCAR_TAURUS=m
+ CONFIG_SMC91X=y
+ CONFIG_SMSC911X=y
+ CONFIG_SNI_AVE=y
+-- 
+2.25.1
+

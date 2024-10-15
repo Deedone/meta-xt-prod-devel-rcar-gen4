@@ -1,0 +1,51 @@
+From 43923d70219eb41eb0b396e3cd982e5451f18fb6 Mon Sep 17 00:00:00 2001
+From: LUU HOAI <hoai.luu.ub@renesas.com>
+Date: Mon, 21 Feb 2022 16:42:26 +0900
+Subject: [PATCH 57/70] Revert "clk: renesas: r8a7796: Add RPC clocks"
+
+The RPC module is not supported on M3,
+so its clock should be removed
+
+This reverts commit 715286f51d13f125de6dbc13f2d707a7893bf95d.
+
+Signed-off-by: LUU HOAI <hoai.luu.ub@renesas.com>
+---
+ drivers/clk/renesas/r8a7796-cpg-mssr.c | 8 --------
+ 1 file changed, 8 deletions(-)
+
+diff --git a/drivers/clk/renesas/r8a7796-cpg-mssr.c b/drivers/clk/renesas/r8a7796-cpg-mssr.c
+index 55f18989d153..f3f3e918d022 100644
+--- a/drivers/clk/renesas/r8a7796-cpg-mssr.c
++++ b/drivers/clk/renesas/r8a7796-cpg-mssr.c
+@@ -46,7 +46,6 @@ enum clk_ids {
+ 	CLK_S3,
+ 	CLK_SDSRC,
+ 	CLK_SSPSRC,
+-	CLK_RPCSRC,
+ 	CLK_RINT,
+ 
+ 	/* Module Clocks */
+@@ -73,12 +72,6 @@ static const struct cpg_core_clk r8a7796_core_clks[] __initconst = {
+ 	DEF_FIXED(".s2",        CLK_S2,            CLK_PLL1_DIV2,  4, 1),
+ 	DEF_FIXED(".s3",        CLK_S3,            CLK_PLL1_DIV2,  6, 1),
+ 	DEF_FIXED(".sdsrc",     CLK_SDSRC,         CLK_PLL1_DIV2,  2, 1),
+-	DEF_BASE(".rpcsrc",	CLK_RPCSRC, CLK_TYPE_GEN3_RPCSRC, CLK_PLL1),
+-
+-	DEF_BASE("rpc",		R8A7796_CLK_RPC, CLK_TYPE_GEN3_RPC,
+-		 CLK_RPCSRC),
+-	DEF_BASE("rpcd2",	R8A7796_CLK_RPCD2, CLK_TYPE_GEN3_RPCD2,
+-		 R8A7796_CLK_RPC),
+ 
+ 	DEF_GEN3_OSC(".r",      CLK_RINT,          CLK_EXTAL,      32),
+ 
+@@ -236,7 +229,6 @@ static struct mssr_mod_clk r8a7796_mod_clks[] __initdata = {
+ 	DEF_MOD("can-fd",		 914,	R8A7796_CLK_S3D2),
+ 	DEF_MOD("can-if1",		 915,	R8A7796_CLK_S3D4),
+ 	DEF_MOD("can-if0",		 916,	R8A7796_CLK_S3D4),
+-	DEF_MOD("rpc-if",		 917,	R8A7796_CLK_RPCD2),
+ 	DEF_MOD("i2c6",			 918,	R8A7796_CLK_S0D6),
+ 	DEF_MOD("i2c5",			 919,	R8A7796_CLK_S0D6),
+ 	DEF_MOD("adg",			 922,	R8A7796_CLK_S0D1),
+-- 
+2.25.1
+

@@ -1,0 +1,28 @@
+From a10cab726bbcc1c0d18a74f9a631b7a233ddf652 Mon Sep 17 00:00:00 2001
+From: Phong Hoang <phong.hoang.wz@renesas.com>
+Date: Fri, 11 Mar 2022 18:21:32 +0700
+Subject: [PATCH 55/70] arch: arm64: dts: salvator-xs: cr7_rproc: Disable
+ RT-DMAC0
+
+This patch disables RT-DMAC0 for CR7 use.
+
+Signed-off-by: Phong Hoang <phong.hoang.wz@renesas.com>
+---
+ arch/arm64/boot/dts/renesas/salvator-xs_cr7_rproc.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm64/boot/dts/renesas/salvator-xs_cr7_rproc.dtsi b/arch/arm64/boot/dts/renesas/salvator-xs_cr7_rproc.dtsi
+index d3a31ea90a42..738bf5a1ab4e 100644
+--- a/arch/arm64/boot/dts/renesas/salvator-xs_cr7_rproc.dtsi
++++ b/arch/arm64/boot/dts/renesas/salvator-xs_cr7_rproc.dtsi
+@@ -144,6 +144,7 @@ mfis: mfis@e6260000 {
+ /delete-node/ &lvds0;
+ /delete-node/ &hdmi0;
+ /delete-node/ &hdmi0_con;
++/delete-node/ &rt_dmac0;
+ 
+ &rcar_sound {
+ 	ports {
+-- 
+2.25.1
+

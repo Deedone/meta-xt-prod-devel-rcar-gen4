@@ -1,0 +1,48 @@
+From e2037726e5f6c3d6de6bc7d78b50ea9e2248a00d Mon Sep 17 00:00:00 2001
+From: Phong Hoang <phong.hoang.wz@renesas.com>
+Date: Mon, 11 Apr 2022 15:38:48 +0700
+Subject: [PATCH 70/70] net: ethernet: renesas: rcar-taurus: Fix memory leak of
+ rct_eth_start_xmit
+
+The skb_get increases the refcount but not free after that so it causes the
+memory leak issue.
+Additionally, this patch also corrects and refactos the step to get full
+Ethernet frame from remote side.
+
+Signed-off-by: Phong Hoang <phong.hoang.wz@renesas.com>
+---
+ drivers/net/ethernet/renesas/rcar-taurus/rcar_taurus_ether.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/ethernet/renesas/rcar-taurus/rcar_taurus_ether.c b/drivers/net/ethernet/renesas/rcar-taurus/rcar_taurus_ether.c
+index ff2cb4be66b2..dd0d08903305 100644
+--- a/drivers/net/ethernet/renesas/rcar-taurus/rcar_taurus_ether.c
++++ b/drivers/net/ethernet/renesas/rcar-taurus/rcar_taurus_ether.c
+@@ -103,7 +103,6 @@ static int rct_eth_cb(struct rpmsg_device *rpdev, void *data, int len, void *pri
+ 		pkt_addr = lower_32_bits(res->hdr.Aux);
+ 		pkt_len = upper_32_bits(res->hdr.Aux);
+ 
+-		pkt_data = ioremap(pkt_addr - ETH_MAC_HEADER_LEN, pkt_len);
+ 		pkt_len = pkt_len + ETH_MAC_HEADER_LEN;
+ 
+ 		skb = netdev_alloc_skb(chan->ndev, PKT_BUF_SZ + RCT_ETH_ALIGN - 1);
+@@ -113,6 +112,7 @@ static int rct_eth_cb(struct rpmsg_device *rpdev, void *data, int len, void *pri
+ 		skb_reserve(skb, NET_IP_ALIGN);
+ 		skb_checksum_none_assert(skb);
+ 
++		pkt_data = ioremap(pkt_addr - ETH_MAC_HEADER_LEN, pkt_len);
+ 		memcpy_fromio(skb->data, pkt_data, pkt_len);
+ 
+ 		skb_put(skb, pkt_len);
+@@ -430,7 +430,7 @@ static netdev_tx_t rct_eth_start_xmit(struct sk_buff *skb, struct net_device *nd
+ 	if (!tx_skb)
+ 		goto out;
+ 
+-	tx_skb->skb = skb_get(skb);
++	tx_skb->skb = skb;
+ 	list_add_tail(&tx_skb->list, &chan->tx_skb_list);
+ 
+ 	skb_tx_timestamp(skb);
+-- 
+2.25.1
+

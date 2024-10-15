@@ -1,0 +1,38 @@
+From 3534f4aa0972a50995a6d378a0c4e43a1b4ff0e3 Mon Sep 17 00:00:00 2001
+From: Phong Hoang <phong.hoang.wz@renesas.com>
+Date: Sun, 13 Mar 2022 21:23:48 +0700
+Subject: [PATCH 54/70] arm64: dts: salvator-xs: cr7_rproc: Add device node for
+ Para-VIN.
+
+This patch adds Para-VIN device node for memory reserved.
+
+Signed-off-by: Phong Hoang <phong.hoang.wz@renesas.com>
+---
+ .../arm64/boot/dts/renesas/salvator-xs_cr7_rproc.dtsi | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/renesas/salvator-xs_cr7_rproc.dtsi b/arch/arm64/boot/dts/renesas/salvator-xs_cr7_rproc.dtsi
+index f176b0ce9082..d3a31ea90a42 100644
+--- a/arch/arm64/boot/dts/renesas/salvator-xs_cr7_rproc.dtsi
++++ b/arch/arm64/boot/dts/renesas/salvator-xs_cr7_rproc.dtsi
+@@ -88,6 +88,17 @@ overlay-1 {
+ 		};
+ 	};
+ 
++	rcar-vivid {
++		#address-cells = <0x2>;
++		#size-cells = <0x2>;
++
++		dma-ranges = <0x0 0x80000000 0x0 0x80000000 0x0 0x10000000>;
++
++		rvivid-memory {
++			memory-region = <&cma>;
++		};
++	};
++
+ 	/delete-node/ cvbs-in;
+ 	/delete-node/ hdmi-in;
+ 	/delete-node/ hdmi-out;
+-- 
+2.25.1
+

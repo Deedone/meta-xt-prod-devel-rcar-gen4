@@ -1,0 +1,135 @@
+From 043314fba5e2fde9cac7d58403e2f1861a117030 Mon Sep 17 00:00:00 2001
+From: Khiem Nguyen <khiem.nguyen.xt@renesas.com>
+Date: Wed, 10 Mar 2021 16:17:50 +0700
+Subject: [PATCH 26/70] drm: rcar-rvgc: Remove drm_fbdev_cma functions
+
+The drm_fbdev_cma functions become obsoleted and removed since v5.0.
+commit 2de304b4 (drm/cma-helper: Remove unused fbdev code).
+Hence, following the changes in rcar-du changes at commit 2f690fad23
+(drm/rcar-du: Use drm_fbdev_generic_setup()) to this driver.
+
+Signed-off-by: Khiem Nguyen <khiem.nguyen.xt@renesas.com>
+---
+ drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.c  | 13 +++----------
+ drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.h  |  1 -
+ drivers/gpu/drm/rcar-rvgc/rcar_rvgc_kms.c  | 13 -------------
+ drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.c |  1 -
+ 4 files changed, 3 insertions(+), 25 deletions(-)
+
+diff --git a/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.c b/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.c
+index 3cb00d66d96d..74af23d9c0b5 100644
+--- a/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.c
++++ b/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.c
+@@ -23,6 +23,7 @@
+ #include <drm/drm_crtc_helper.h>
+ #include <drm/drm_fb_cma_helper.h>
+ #include <drm/drm_gem_cma_helper.h>
++#include <drm/drm_fb_helper.h>
+ 
+ #include "rcar_rvgc_drv.h"
+ #include "rcar_rvgc_kms.h"
+@@ -110,12 +111,6 @@ static int rcar_rvgc_cb(struct rpmsg_device* rpdev, void* data, int len,
+  * DRM operations
+  */
+ 
+-static void rcar_rvgc_lastclose(struct drm_device* dev) {
+-	struct rcar_rvgc_device* rcrvgc = dev->dev_private;
+-
+-	drm_fbdev_cma_restore_mode(rcrvgc->fbdev);
+-}
+-
+ static int rcar_rvgc_dumb_create(struct drm_file* file, struct drm_device* dev,
+ 				 struct drm_mode_create_dumb* args) {
+ 	unsigned int min_pitch = DIV_ROUND_UP(args->width * args->bpp, 8);
+@@ -151,7 +146,6 @@ static struct drm_driver rcar_rvgc_driver = {
+ 	.desc			= "Renesas Virtual Graphics Card",
+ 	.date			= "20190408",
+ 	.fops			= &rcar_rvgc_fops,
+-	.lastclose		= rcar_rvgc_lastclose,
+ };
+ 
+ 
+@@ -168,9 +162,6 @@ static void rcar_rvgc_remove(struct rpmsg_device* rpdev) {
+ 	else
+ 		kthread_stop(rcrvgc->vsync_thread);
+ 
+-	if (rcrvgc->fbdev)
+-		drm_fbdev_cma_fini(rcrvgc->fbdev);
+-
+ 	if (rcrvgc->ddev) {
+ 		drm_dev_unregister(ddev);
+ 		drm_kms_helper_poll_fini(ddev);
+@@ -260,6 +251,8 @@ static int rcar_rvgc_probe(struct rpmsg_device* rpdev) {
+ 	if (ret)
+ 		goto error;
+ 
++	drm_fbdev_generic_setup(ddev, 32);
++
+ 	DRM_INFO("Device %s probed\n", dev_name(&rpdev->dev));
+ 
+ 	return 0;
+diff --git a/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.h b/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.h
+index b50a7b3db281..e2b94882524a 100644
+--- a/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.h
++++ b/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_drv.h
+@@ -32,7 +32,6 @@ struct rcar_rvgc_device {
+ 	struct device* dev;
+ 
+ 	struct drm_device* ddev;
+-	struct drm_fbdev_cma* fbdev;
+ 
+ 	struct rpmsg_device* rpdev;
+ 
+diff --git a/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_kms.c b/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_kms.c
+index b8edb0bacceb..76428600b3c7 100644
+--- a/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_kms.c
++++ b/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_kms.c
+@@ -2,7 +2,6 @@
+ 
+ 
+ 
+-#include <drm/drmP.h>
+ #include <drm/drm_device.h>
+ #include <drm/drm_atomic.h>
+ #include <drm/drm_atomic_helper.h>
+@@ -148,7 +147,6 @@ static const struct drm_mode_config_helper_funcs rcar_rvgc_mode_config_helper =
+ 
+ int rcar_rvgc_modeset_init(struct rcar_rvgc_device* rcrvgc) {
+ 	struct drm_device* dev = rcrvgc->ddev;
+-	struct drm_fbdev_cma* fbdev;
+ 	struct device_node* displays_node;
+ 	struct device_node* display_node;
+ 	int ret = 0;
+@@ -283,17 +281,6 @@ int rcar_rvgc_modeset_init(struct rcar_rvgc_device* rcrvgc) {
+ 		}
+ 	}
+ 
+-	/*
+-	 * Initializes drm_fbdev_cma struct
+-	 */
+-	fbdev = drm_fbdev_cma_init(dev, 32, dev->mode_config.num_connector);
+-	ret = IS_ERR(fbdev);
+-	if (ret) {
+-		dev_err(rcrvgc->dev, "drm_fbdev_cma_init failed: %d\n", ret);
+-		goto exit;
+-	}
+-
+-	rcrvgc->fbdev = fbdev;
+  exit:
+ 	return ret;
+ }
+diff --git a/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.c b/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.c
+index 90b08ed4bb2a..f4dd7aedbbfb 100644
+--- a/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.c
++++ b/drivers/gpu/drm/rcar-rvgc/rcar_rvgc_pipe.c
+@@ -1,7 +1,6 @@
+ //#define DEBUG
+ 
+ 
+-#include <drm/drmP.h>
+ #include <drm/drm_device.h>
+ 
+ #include "rcar_rvgc_drv.h"
+-- 
+2.25.1
+

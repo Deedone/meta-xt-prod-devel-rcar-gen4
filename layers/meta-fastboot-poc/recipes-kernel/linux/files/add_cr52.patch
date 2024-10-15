@@ -1,0 +1,622 @@
+diff --git a/arch/arm64/boot/dts/renesas/Makefile b/arch/arm64/boot/dts/renesas/Makefile
+index aa01c4c78d2e..0907e52e33dc 100644
+--- a/arch/arm64/boot/dts/renesas/Makefile
++++ b/arch/arm64/boot/dts/renesas/Makefile
+@@ -80,6 +80,7 @@ dtb-$(CONFIG_ARCH_R8A779A0) += r8a779a0-falcon.dtb
+ dtb-$(CONFIG_ARCH_R8A779G0) += r8a779g0-whitehawk.dtb
+ dtb-$(CONFIG_ARCH_R8A779G0) += r8a779g0-whitehawk-native.dtb
+ dtb-$(CONFIG_ARCH_R8A779G0) += r8a779g0-whitehawk-sound.dtb
++dtb-$(CONFIG_ARCH_R8A779G0) += r8a779g0-whitehawk_cr52_rproc.dtb
+ 
+ dtb-$(CONFIG_ARCH_R8A779F0) += r8a779f0-spider.dtb
+ 
+diff --git a/arch/arm64/boot/dts/renesas/r8a779g0-whitehawk_cr52_rproc.dts b/arch/arm64/boot/dts/renesas/r8a779g0-whitehawk_cr52_rproc.dts
+new file mode 100644
+index 000000000000..a404c3a143db
+--- /dev/null
++++ b/arch/arm64/boot/dts/renesas/r8a779g0-whitehawk_cr52_rproc.dts
+@@ -0,0 +1,11 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Device Tree Source for the White Hawk CPU board with R-Car V4H
++ *
++ * Copyright (C) 2023 Renesas Electronics Corp.
++ */
++
++/dts-v1/;
++#include "r8a779g0-whitehawk.dts"
++#include "whitehawk_cr52_rproc.dtsi"
++
+diff --git a/arch/arm64/boot/dts/renesas/whitehawk_cr52_rproc.dtsi b/arch/arm64/boot/dts/renesas/whitehawk_cr52_rproc.dtsi
+new file mode 100644
+index 000000000000..6b002c8ffdc9
+--- /dev/null
++++ b/arch/arm64/boot/dts/renesas/whitehawk_cr52_rproc.dtsi
+@@ -0,0 +1,136 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * Device Tree Source for the White Hawk CPU board Cortex-R52 (CR52) Taurus virtio display
++ *
++ * Copyright (C) 2023 Renesas Electronics Corp.
++ */
++
++/ {
++	aliases {
++		/* The CR52 will control video input so exclusively uses i2c4
++		 * as it needs to access the adv7482, i.e. Linux can no longer
++		 * use i2c4 for anything */
++		/delete-property/ i2c0;
++		/delete-property/ i2c1;
++		/delete-property/ i2c4;
++	};
++
++	cpus {
++		/delete-property/ idle-states;
++	};
++
++	reserved-memory {
++		/* global autoconfigured region for contiguous allocations */
++		/* Only added a label so rvgc can refer to it */
++		cma: linux,cma@80000000 {
++            reg = <0x0 0x80000000 0x0 0x10000000>;
++		};
++	};
++
++	cr52 {
++		compatible = "renesas,rcar-cr52";
++        memory-region = <&cr_region>;
++	};
++
++	rvgc {
++		#address-cells = <2>;
++		#size-cells = <2>;
++
++		/* 1:1 mapping for the cma address space */
++		dma-ranges = <0x0 0x80000000 0x0 0x80000000 0x0 0x10000000>;
++
++		rvgc-memory {
++			memory-region = <&cma>;
++		};
++
++		displays {
++			display-0 {
++				display-map = <1>;
++				layers {
++					primary{
++						/* Position the layer in the centre of a 1920x720 display */
++						layer-map=<0x4>;
++						size-w=<1920>;
++						size-h=<1080>;
++						pos-x=<0>;
++						pos-y=<0>;
++						pos-override;
++					};
++
++					overlay-0 {
++						layer-map = <0x2>;
++						size-w = <640>;
++						size-h = <480>;
++						pos-x = <200>;
++						pos-y = <200>;
++					};
++
++					overlay-1 {
++						layer-map = <0x1>;
++						size-w = <640>;
++						size-h = <480>;
++						pos-x = <300>;
++						pos-y = <300>;
++					};
++
++					overlay-2 {
++						layer-map=<0x3>;
++						size-w=<640>;
++						size-h=<480>;
++						pos-x=<0>;
++						pos-y=<200>;
++					};
++				};
++			};
++		};
++	};
++
++	/delete-node/ dsi-con0;
++	/delete-node/ dsi-con1;
++};
++
++&soc {
++	mfis: mfis@e6260000 {
++		compatible = "renesas,mfis";
++		reg = <0x0 0xe6260000 0x0 0x10000>;
++		interrupts = <0x00 0x7B 0x04>;
++		interrupt-names = "eicr0";
++		renesas,mfis-channels = <0 1 2 3>;
++		status = "okay";
++
++		/delete-node/ mfis-as;
++	};
++};
++
++/delete-node/ &cmt0;
++
++/delete-node/ &i2c0;
++/delete-node/ &i2c1;
++/delete-node/ &i2c4;
++/delete-node/ &pciec0;
++
++/delete-node/ &dsi0;
++/delete-node/ &dsi1;
++/delete-node/ &du;
++/delete-node/ &dsc;
++/delete-node/ &vspd0;
++/delete-node/ &vspd1;
++/delete-node/ &fcpvd0;
++/delete-node/ &fcpvd1;
++
++/delete-node/ &vin00;
++/delete-node/ &vin01;
++/delete-node/ &vin02;
++/delete-node/ &vin03;
++/delete-node/ &vin10;
++/delete-node/ &vin11;
++/delete-node/ &vin12;
++/delete-node/ &vin13;
++/delete-node/ &csi40;
++/delete-node/ &csi41;
++///delete-node/ &gmsl0;
++
++/delete-node/ &vspx0;
++/delete-node/ &cisp0;
++/delete-node/ &tisp0;
++
+diff --git a/drivers/clk/renesas/r8a779g0-cpg-mssr.c b/drivers/clk/renesas/r8a779g0-cpg-mssr.c
+index 15ca9fc4ab77..602ae0ad4159 100644
+--- a/drivers/clk/renesas/r8a779g0-cpg-mssr.c
++++ b/drivers/clk/renesas/r8a779g0-cpg-mssr.c
+@@ -140,8 +140,8 @@ static const struct cpg_core_clk r8a779g0_core_clks[] __initconst = {
+ 	DEF_GEN4_SD("sd0",	R8A779G0_CLK_SD0,	CLK_SDSRC,	0x870),
+ 	DEF_DIV6P1("mso",	R8A779G0_CLK_MSO,	CLK_PLL5_DIV4,	0x087C),
+ 	DEF_DIV6P1("canfd",	R8A779G0_CLK_CANFD,	CLK_PLL5_DIV4,	0x878),
+-	DEF_DIV6P1("csi",	R8A779G0_CLK_CSI,	CLK_PLL5_DIV4,	0x0880),
+-	DEF_DIV6P1("dsiext",	R8A779G0_CLK_DSIEXT,	CLK_PLL5_DIV4,	0x0884),
++	DEF_DIV6_RO("csi",	R8A779G0_CLK_CSI,	CLK_PLL5_DIV4,	0x0880, 1),
++	DEF_DIV6_RO("dsiext",	R8A779G0_CLK_DSIEXT,	CLK_PLL5_DIV4,	0x0884, 1),
+ 	DEF_DIV6P1("post",	R8A779G0_CLK_POST,	CLK_PLL5_DIV4,	0x890),
+ 	DEF_DIV6P1("post2",	R8A779G0_CLK_POST2,	CLK_PLL5_DIV4,	0x0894),
+ 	DEF_DIV6P1("post3",	R8A779G0_CLK_POST3,	CLK_PLL5_DIV4,	0x898),
+@@ -363,6 +363,19 @@ static int __init r8a779g0_cpg_mssr_init(struct device *dev)
+ 
+ static const unsigned int r8a779g0_crit_mod_clks[] __initconst = {
+ 	MOD_CLK_ID(330),	/* csdbgpap */
++	MOD_CLK_ID(16),		/* isp0 */
++	MOD_CLK_ID(331),	/* csitop0 */
++	MOD_CLK_ID(411),	/* dis0 */
++	MOD_CLK_ID(415),	/* dsitxlink0 */
++	MOD_CLK_ID(508),	/* fcpvd0 */
++	MOD_CLK_ID(518),	/* i2c0 */
++	MOD_CLK_ID(519),	/* i2c1 */
++	MOD_CLK_ID(612),	/* ispcs0 */
++	MOD_CLK_ID(730),	/* vin0 */
++	MOD_CLK_ID(830),	/* vspd0 */
++	MOD_CLK_ID(910),	/* cmt0 */
++	MOD_CLK_ID(1028),	/* vspx0 */
++	MOD_CLK_ID(1100),	/* fcpvx0 */
+ };
+ 
+ const struct cpg_mssr_info r8a779g0_cpg_mssr_info __initconst = {
+diff --git a/drivers/misc/rcar-mfis/rcar_mfis_drv.c b/drivers/misc/rcar-mfis/rcar_mfis_drv.c
+index 691ee2d9616e..b063adc1c455 100644
+--- a/drivers/misc/rcar-mfis/rcar_mfis_drv.c
++++ b/drivers/misc/rcar-mfis/rcar_mfis_drv.c
+@@ -1,7 +1,7 @@
+ /*************************************************************************/ /*
+  rcar_mfis_drv.c -- R-Car MFIS
+ 
+- Copyright (C) 2021-2022 Renesas Electronics Corporation
++ Copyright (C) 2021-2023 Renesas Electronics Corporation
+ 
+  License        Dual MIT/GPLv2
+ 
+@@ -73,10 +73,15 @@
+ #include "rcar_mfis_drv.h"
+ #include <misc/rcar-mfis/rcar_mfis_public.h>
+ 
++#if 0
+ #define IICR(n) (0x0400 + n * 0x8)
+ #define EICR(n) (0x0404 + n * 0x8)
+ #define IMBR(n) (0x0440 + n * 0x4)
+ #define EMBR(n) (0x0460 + n * 0x4)
++#else // For V4H2
++#define IICR(k) (0x1400 + 0x1008 * 0 + 0x20 * k)
++#define EICR(i) (0x9404 + 0x1020 * 0 + 0x8 * i)
++#endif
+ 
+ static struct rcar_mfis_dev* rcmfis_dev = NULL;
+ 
+@@ -95,8 +100,8 @@ static irqreturn_t mfis_irq_handler(int irq, void *data)
+ 	value = rcar_mfis_reg_read(rcmfis_dev, EICR(ch));
+ 	if (value & 0x1)
+ 	{
+-		msg.mbr = rcar_mfis_reg_read(rcmfis_dev, EMBR(ch));
+-		msg.icr = value >> 1; //get rid of EIR bit
++		//msg.mbr = rcar_mfis_reg_read(rcmfis_dev, EMBR(ch));
++		//msg.icr = value >> 1; //get rid of EIR bit
+ 
+ 		atomic_notifier_call_chain(&rcar_mfis_ch->notifier_head, msg.icr, rcar_mfis_ch->notifier_data);
+ 
+@@ -143,7 +148,7 @@ int rcar_mfis_trigger_interrupt(int channel, struct rcar_mfis_msg msg)
+ 		return -EBUSY;
+ 	}
+ 
+-	rcar_mfis_reg_write(rcmfis_dev, IMBR(channel), msg.mbr);
++	//rcar_mfis_reg_write(rcmfis_dev, IMBR(channel), msg.mbr);
+ 	rcar_mfis_reg_write(rcmfis_dev, IICR(channel), (msg.icr << 1) | 1);
+ 
+ 	return ret;
+diff --git a/drivers/remoteproc/Kconfig b/drivers/remoteproc/Kconfig
+index 681bff91f9e5..95202efb84a0 100644
+--- a/drivers/remoteproc/Kconfig
++++ b/drivers/remoteproc/Kconfig
+@@ -304,6 +304,22 @@ config RCAR_CR7_REMOTEPROC
+ 	  rcar_cr7_fw_name=<filename>, and if not specified will default
+ 	  to "rproc-cr7-fw".
+ 
++config RCAR_CR52_REMOTEPROC
++	tristate "R-Car Gen4 Cortex-R52 remoteproc support"
++	depends on RCAR_MFIS
++	depends on DMA_CMA
++	depends on RPMSG_VIRTIO
++	help
++	  Say y here to support ARM Cortex-R52 remote processors via the
++	  remote processor framework on R-Car Gen4 SOCs.
++
++	  This module controls the name of the firmware file that is
++	  executed by the CR52.
++	  This file must reside in the /lib/firmware directory.  It
++	  can be specified via the module parameter
++	  rcar_cr52_fw_name=<filename>, and if not specified will default
++	  to "rproc-cr52-fw".
++
+ endif # REMOTEPROC
+ 
+ endmenu
+diff --git a/drivers/remoteproc/Makefile b/drivers/remoteproc/Makefile
+index 1fc6051096c1..3493a6f6c87e 100644
+--- a/drivers/remoteproc/Makefile
++++ b/drivers/remoteproc/Makefile
+@@ -35,3 +35,4 @@ obj-$(CONFIG_STM32_RPROC)		+= stm32_rproc.o
+ obj-$(CONFIG_TI_K3_DSP_REMOTEPROC)	+= ti_k3_dsp_remoteproc.o
+ obj-$(CONFIG_TI_K3_R5_REMOTEPROC)	+= ti_k3_r5_remoteproc.o
+ obj-$(CONFIG_RCAR_CR7_REMOTEPROC)	+= rcar_cr7_remoteproc.o
++obj-$(CONFIG_RCAR_CR52_REMOTEPROC)	+= rcar_cr52_remoteproc.o
+diff --git a/drivers/remoteproc/rcar_cr52_remoteproc.c b/drivers/remoteproc/rcar_cr52_remoteproc.c
+new file mode 100644
+index 000000000000..a9dd7a0eb086
+--- /dev/null
++++ b/drivers/remoteproc/rcar_cr52_remoteproc.c
+@@ -0,0 +1,312 @@
++/*
++ * Remote processor machine-specific module for R-Car Gen4 - Cortex-R52
++ *
++ * Copyright (C) 2019 Renesas Electronics
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ */
++
++#include <linux/bitops.h>
++#include <linux/clk.h>
++#include <linux/err.h>
++#include <linux/interrupt.h>
++#include <linux/io.h>
++#include <linux/notifier.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/of_address.h>
++#include <linux/of_device.h>
++#include <linux/platform_device.h>
++#include <linux/remoteproc.h>
++#include <linux/delay.h>
++
++#include "remoteproc_internal.h"
++
++#include <misc/rcar-mfis/rcar_mfis_public.h>
++#define MFIS_CHANNEL 0 //use this mfis channel to trigger interrupts
++
++static char *rcar_cr52_fw_name;
++module_param(rcar_cr52_fw_name, charp, S_IRUGO);
++MODULE_PARM_DESC(rcar_cr52_fw_name,
++		 "Name of CR52 firmware file in /lib/firmware (if not specified defaults to 'rproc-cr52-fw')");
++
++#define RST_BASE                0xE6160000
++#define RST_CR52BAR_OFFSET       0x00000070
++
++#define SYSC_BASE               0xE6180000
++#define SYSC_PWRSR7_OFFSET      0x00000240
++#define SYSC_PWRONCR52_OFFSET    0x0000024C
++
++#define APMU_CR52PSTR            0XE6153040
++
++#define CPG_BASE                0xE6150000
++#define CPG_WPCR_OFFSET         0x00000904
++#define CPG_WPR_OFFSET          0x00000900
++
++#define MSSR_BASE               0xE6150000 //same as CPG
++#define MSSR_SRCR2_OFFSET       0x000000B0
++#define MSSR_SRSTCLR2_OFFSET    0x00000948
++
++#define CR52_BASE                0xF0100000
++#define CR52_WBPWRCTLR_OFFSET    0x00000F80
++#define CR52_WBCTLR_OFFSET       0x00000000
++
++//#define CR52_RST_ADDRESS         0x7FFFFC00
++#define CR52_RST_ADDRESS         0x7FF00000
++#define CR52_RST_SIZE            204
++
++
++/**
++ * struct rcar_cr52_rproc - rcar_cr52 remote processor instance state
++ * @rproc: rproc handle
++ * @workqueue: work queue list
++ * @cr52_already_running: indicate Cortex-R7 core is already running or not
++ * @mem_va: virtual memory address
++ * @mem_da: device memory address
++ * @mem_len: length of internal memory regions data
++ */
++struct rcar_cr52_rproc {
++	struct rproc *rproc;
++	struct work_struct workqueue;
++	void __iomem *mem_va;
++	phys_addr_t mem_da;
++	u64 mem_len;
++};
++
++/**
++ * handle_event() - inbound virtqueue message workqueue function
++ * @work: work queue list
++ *
++ * This callback is registered with the R-Car MFIS atomic notifier
++ * chain and is called every time the remote processor (Cortex-R52)
++ * wants to notify us of pending messages available.
++ */
++static void handle_event(struct work_struct *work)
++{
++        struct rcar_cr52_rproc *rrproc =
++                container_of(work, struct rcar_cr52_rproc, workqueue);
++
++	/* Process incoming buffers on all our vrings */
++        rproc_vq_interrupt(rrproc->rproc, 0);
++        rproc_vq_interrupt(rrproc->rproc, 1);
++}
++
++/**
++ * cr52_interrupt_cb()
++ * @self: R-Car Cortex CR52 notifer block
++ * @action: type of interrupt request
++ * @data: message data
++ *
++ * This callback is registered with the R-Car MFIS atomic notifier
++ * chain and is called every time the remote processor (Cortex-R7)
++ * wants to notify us of pending messages available.
++ */
++static int cr52_interrupt_cb(struct notifier_block *self, unsigned long action, void *data)
++{
++	struct rcar_cr52_rproc *rrproc = (struct rcar_cr52_rproc *)data;
++	struct device *dev = rrproc->rproc->dev.parent;
++
++	dev_dbg(dev, "%s\n", __FUNCTION__);
++
++	schedule_work(&rrproc->workqueue);
++
++	return NOTIFY_DONE;
++}
++
++static struct notifier_block rcar_cr52_notifier_block = {
++	.notifier_call = cr52_interrupt_cb,
++};
++
++static int rcar_cr52_rproc_start(struct rproc *rproc)
++{
++	return 0;
++}
++
++static int rcar_cr52_rproc_stop(struct rproc *rproc)
++{
++	return 0;
++}
++
++/* kick a virtqueue */
++static void rcar_cr52_rproc_kick(struct rproc *rproc, int vqid)
++{
++	int ret;
++	struct device *dev = rproc->dev.parent;
++	struct rcar_mfis_msg msg;
++	// struct rcar_cr52_rproc *rrproc = (struct rcar_cr52_rproc *)rproc->priv;
++	unsigned int n_tries = 3;
++
++	dev_dbg(dev, "%s\n", __FUNCTION__);
++
++	msg.icr = vqid;
++	msg.mbr = 0;
++
++	do {
++	    ret = rcar_mfis_trigger_interrupt(MFIS_CHANNEL, msg);
++	    if (ret)
++		udelay(500);
++
++	} while (ret && n_tries--);
++
++	if (ret) {
++		dev_dbg(dev, "%s failed\n", __FUNCTION__);
++	}
++}
++
++static void *rcar_cr52_da_to_va(struct rproc *rproc, u64 da, size_t len)
++{
++	struct rcar_cr52_rproc *rrproc = rproc->priv;
++	int offset;
++
++	offset = da - rrproc->mem_da;
++	if (offset < 0 || offset + len > rrproc->mem_len)
++		return NULL;
++
++	return (void __force *)rrproc->mem_va + offset;
++}
++
++static int rcar_cr52_rproc_elf_load_segments(struct rproc *rproc,
++					    const struct firmware *fw)
++{
++	return 0;
++}
++
++static int rcar_cr52_rproc_parse_fw(struct rproc *rproc, const struct firmware *fw)
++{
++	// Use fixed address
++	//struct resource_table *table = CR52_RST_ADDRESS;
++	struct resource_table *table = ioremap(CR52_RST_ADDRESS, CR52_RST_SIZE);
++	size_t tablesz = CR52_RST_SIZE;
++	rproc->cached_table = kmemdup(table, tablesz, GFP_KERNEL);
++        rproc->table_ptr = rproc->cached_table;
++        rproc->table_sz = tablesz;
++
++	return 0;
++}
++
++static struct resource_table *
++rcar_cr52_rproc_elf_find_loaded_rsc_table(struct rproc *rproc,
++				         const struct firmware *fw)
++{
++	// Use fixed address
++        u64 sh_addr, sh_size;
++	sh_addr = CR52_RST_ADDRESS;
++	sh_size = CR52_RST_SIZE;
++	return rproc_da_to_va(rproc, sh_addr, sh_size);
++}
++
++static const struct rproc_ops rcar_cr52_rproc_ops = {
++	.start = rcar_cr52_rproc_start,
++	.stop = rcar_cr52_rproc_stop,
++	.kick = rcar_cr52_rproc_kick,
++	.da_to_va = rcar_cr52_da_to_va,
++	.load = rcar_cr52_rproc_elf_load_segments,
++	.parse_fw = rcar_cr52_rproc_parse_fw,
++	.find_loaded_rsc_table = rcar_cr52_rproc_elf_find_loaded_rsc_table,
++};
++
++static int rcar_cr52_rproc_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct rcar_cr52_rproc *rrproc;
++	struct device_node *np = dev->of_node;
++	struct device_node *node;
++	struct resource res;
++	struct rproc *rproc;
++	int ret;
++
++	rproc = rproc_alloc(dev, "cr52", &rcar_cr52_rproc_ops, rcar_cr52_fw_name, sizeof(*rrproc));
++	if (!rproc) {
++		return -ENOMEM;
++	}
++
++	rrproc = rproc->priv;
++	rrproc->rproc = rproc;
++	rproc->has_iommu = false;
++
++	node = of_parse_phandle(np, "memory-region", 0);
++	if (!node) {
++		dev_err(dev, "no memory-region specified\n");
++		ret = -EINVAL;
++		goto free_rproc;
++	}
++
++	ret = of_address_to_resource(node, 0, &res);
++	if (ret) {
++		dev_err(dev, "unable to resolve memory region\n");
++		goto free_rproc;
++	}
++
++	rrproc->mem_da = res.start;
++	rrproc->mem_len = resource_size(&res);
++	rrproc->mem_va = devm_ioremap_wc(dev, rrproc->mem_da, rrproc->mem_len);
++	if (IS_ERR(rrproc->mem_va)) {
++		dev_err(dev, "unable to map memory region: %pa+%llx\n",
++			&res.start, rrproc->mem_len);
++		ret = PTR_ERR(rrproc->mem_va);
++		goto free_rproc;
++	}
++
++	INIT_WORK(&rrproc->workqueue, handle_event);
++
++	platform_set_drvdata(pdev, rrproc);
++
++	ret = rcar_mfis_register_notifier(MFIS_CHANNEL, &rcar_cr52_notifier_block, rrproc);
++	if (ret) {
++		dev_err(dev, "cannot register notifier on mfis channel %d\n", MFIS_CHANNEL);
++		goto free_rproc;
++	}
++
++	rproc->skip_fw_load = 1;
++        rproc->auto_boot =0;
++
++	ret = rproc_add(rproc);
++	if (ret) {
++		dev_err(dev, "rproc_add failed: %d\n", ret);
++		goto unregister_notifier;
++	}
++
++	return 0;
++
++unregister_notifier:
++	rcar_mfis_unregister_notifier(MFIS_CHANNEL, &rcar_cr52_notifier_block);
++	flush_work(&rrproc->workqueue);
++free_rproc:
++	rproc_free(rproc);
++	return ret;
++}
++
++static int rcar_cr52_rproc_remove(struct platform_device *pdev)
++{
++	struct rcar_cr52_rproc *rrproc = platform_get_drvdata(pdev);
++	struct rproc *rproc = rrproc->rproc;
++
++	rcar_mfis_unregister_notifier(MFIS_CHANNEL, &rcar_cr52_notifier_block);
++	flush_work(&rrproc->workqueue);
++	rproc_del(rproc);
++	rproc_free(rproc);
++
++	return 0;
++}
++
++static const struct of_device_id rcar_cr52_rproc_of_match[] = {
++	{ .compatible = "renesas,rcar-cr52", },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, rcar_cr52_rproc_of_match);
++
++static struct platform_driver rcar_cr52_rproc_driver = {
++	.probe = rcar_cr52_rproc_probe,
++	.remove = rcar_cr52_rproc_remove,
++	.driver = {
++		.name = "rcar-cr52-rproc",
++		.of_match_table = of_match_ptr(rcar_cr52_rproc_of_match),
++	},
++};
++
++module_platform_driver(rcar_cr52_rproc_driver);
++
++MODULE_LICENSE("GPL v2");
++MODULE_DESCRIPTION("RCAR_CR52 Remote Processor control driver");
+diff --git a/drivers/soc/renesas/r8a779g0-sysc.c b/drivers/soc/renesas/r8a779g0-sysc.c
+index 5531558d6c0b..f5ae1261881e 100644
+--- a/drivers/soc/renesas/r8a779g0-sysc.c
++++ b/drivers/soc/renesas/r8a779g0-sysc.c
+@@ -65,7 +65,7 @@ static struct r8a779g0_sysc_area r8a779g0_areas[] __initdata = {
+ 	{ "a3vip0",	R8A779G0_PD_A3VIP0, R8A779G0_PD_ALWAYS_ON },
+ 	{ "a3vip1",	R8A779G0_PD_A3VIP1, R8A779G0_PD_ALWAYS_ON },
+ 	{ "a3vip2",	R8A779G0_PD_A3VIP2, R8A779G0_PD_ALWAYS_ON },
+-	{ "a3isp0",	R8A779G0_PD_A3ISP0, R8A779G0_PD_ALWAYS_ON },
++	{ "a3isp0",	R8A779G0_PD_A3ISP0, R8A779G0_PD_ALWAYS_ON, PD_FORCE_ALWAYS_ON },
+ 	{ "a3isp1",	R8A779G0_PD_A3ISP1, R8A779G0_PD_ALWAYS_ON },
+ 	{ "a3ir",	R8A779G0_PD_A3IR, R8A779G0_PD_ALWAYS_ON, PD_FORCE_ALWAYS_ON },
+ 	{ "a2cn0",	R8A779G0_PD_A2CN0, R8A779G0_PD_A3IR, PD_FORCE_ALWAYS_ON },

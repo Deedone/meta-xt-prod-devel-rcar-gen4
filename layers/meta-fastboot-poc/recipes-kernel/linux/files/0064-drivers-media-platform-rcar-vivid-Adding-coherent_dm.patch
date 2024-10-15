@@ -1,0 +1,30 @@
+From 329b8161302afcd0769fbfab3a071485365969f4 Mon Sep 17 00:00:00 2001
+From: Phong Hoang <phong.hoang.wz@renesas.com>
+Date: Tue, 22 Mar 2022 16:47:21 +0700
+Subject: [PATCH 64/70] drivers: media: platform: rcar-vivid: Adding
+ coherent_dma_mask for R-Car Vivid
+
+Applying coherent_dma_mask for R-Car Vivid driver.
+
+Signed-off-by: Phong Hoang <phong.hoang.wz@renesas.com>
+Signed-off-by: Nam Nguyen <nam.nguyen.yh@renesas.com>
+---
+ drivers/media/platform/rcar-vivid/rcar-vivid-drv.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/media/platform/rcar-vivid/rcar-vivid-drv.c b/drivers/media/platform/rcar-vivid/rcar-vivid-drv.c
+index 9eee7cdd1624..0f0d689bc30e 100644
+--- a/drivers/media/platform/rcar-vivid/rcar-vivid-drv.c
++++ b/drivers/media/platform/rcar-vivid/rcar-vivid-drv.c
+@@ -210,6 +210,8 @@ static int rcar_vivid_probe(struct rpmsg_device *rpdev)
+     rvivid->dev = &rpdev->dev;
+     rvivid->rpdev = rpdev;
+ 
++	rvivid->dev->coherent_dma_mask = DMA_BIT_MASK(32);
++
+     /* Initialize taurus event list and its lock */
+     INIT_LIST_HEAD(&rvivid->taurus_event_list_head);
+     rwlock_init(&rvivid->event_list_lock);
+-- 
+2.25.1
+
