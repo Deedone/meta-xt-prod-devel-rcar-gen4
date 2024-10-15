@@ -271,28 +271,8 @@ images:
 parameters:
   MACHINE:
     desc: "RCAR Gen4-based device"
-    "spider":
-      default: true
-      overrides:
-        variables:
-          MACHINE: "spider"
-          SOC_FAMILY: "r8a779f0"
-        components:
-          domd:
-            builder:
-              layers:
-                - "../meta-renesas/meta-rcar-gateway"
-    "s4sk":
-      overrides:
-        variables:
-          MACHINE: "s4sk"
-          SOC_FAMILY: "r8a779f0"
-        components:
-          domd:
-            builder:
-              layers:
-                - "../meta-renesas/meta-rcar-gateway"
     "whitehawk":
+      default: true
       overrides:
         variables:
           MACHINE: "whitehawk"
