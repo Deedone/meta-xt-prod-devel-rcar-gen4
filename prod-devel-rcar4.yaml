@@ -87,6 +87,10 @@ common_data:
     - [MACHINE_FEATURES:append, " gsx"]
     # this u-boot is S4-specific
     - [BBMASK:append, " meta-xt-rcar/meta-xt-gateway/meta-xt-domd-gen4/recipes-bsp/u-boot/"]
+    # we have to use opencv 4.1, but meta-oe provides 4.5.5
+    - [BBMASK:append, "  meta-openembedded/meta-oe/recipes-support/opencv"]
+    # we have to use tbb 2020.2 instead of 2021.5 for opencv 4.1
+    - [BBMASK:append, "  meta-openembedded/meta-oe/recipes-support/tbb"]
 
 components:
   dom0:
@@ -165,10 +169,6 @@ components:
         - [PREFERRED_VERSION_xen, "4.17.0+git%"]
 
         - [KERNEL_DEVICETREE:remove, "renesas/r8a779g0-whitehawk-native.dtb"]
-        # we have to use opencv 4.1, but meta-oe provides 4.5.5
-        - [BBMASK:append, "  meta-openembedded/meta-oe/recipes-support/opencv"]
-        # we have to use tbb 2020.2 instead of 2021.5 for opencv 4.1
-        - [BBMASK:append, "  meta-openembedded/meta-oe/recipes-support/tbb"]
 
       build_target: rcar-image-adas
       layers:
@@ -215,10 +215,6 @@ components:
         # This is temporary workaround required because we use linux-libc-headers 5.10
         # and xt-common provides 6.4 already. So we need this bbmask until upgrade to 6.4
         - [BBMASK:append, " meta-xt-common/meta-xt-domu/recipes-kernel/linux-libc-headers/"]
-        # we have to use opencv 4.1, but meta-oe provides 4.5.5
-        - [BBMASK:append, "  meta-openembedded/meta-oe/recipes-support/opencv"]
-        # we have to use tbb 2020.2 instead of 2021.5 for opencv 4.1
-        - [BBMASK:append, "  meta-openembedded/meta-oe/recipes-support/tbb"]
 
       layers:
         - "../meta-openembedded/meta-oe"
