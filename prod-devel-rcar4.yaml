@@ -215,6 +215,7 @@ components:
         # This is temporary workaround required because we use linux-libc-headers 5.10
         # and xt-common provides 6.4 already. So we need this bbmask until upgrade to 6.4
         - [BBMASK:append, " meta-xt-common/meta-xt-domu/recipes-kernel/linux-libc-headers/"]
+        - [EXTRA_IMAGEDEPENDS:remove, " arm-trusted-firmware"]
 
       layers:
         - "../meta-openembedded/meta-oe"
