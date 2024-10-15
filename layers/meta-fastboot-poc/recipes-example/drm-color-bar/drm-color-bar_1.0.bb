@@ -17,8 +17,8 @@ RDEPENDS_${PN} += "bash"
 
 inherit systemd
 
-SYSTEMD_SERVICE_${PN} = "drmcolorbar.service"
-SYSTEMD_AUTO_ENABLE_${PN} = "enable"
+SYSTEMD_SERVICE:${PN} = "drmcolorbar.service"
+SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
 
 CFLAGS += "-I/usr/include/drm"
@@ -43,8 +43,8 @@ do_install() {
     install -m 0644 ${WORKDIR}/blacklist_rvgc.conf ${D}${sysconfdir}/modprobe.d/
 }
 
-FILES_${PN} += "${bindir}/drm-color-bar"
-FILES_${PN} += "${systemd_system_unitdir}/drmcolorbar.service"
-FILES_${PN} += "${sysconfdir}/init.d/load_rvgc.sh "
-FILES_${PN} += "${sysconfdir}/modprobe.d/blacklist_rvgc.conf"
+FILES:${PN} += "${bindir}/drm-color-bar"
+FILES:${PN} += "${systemd_system_unitdir}/drmcolorbar.service"
+FILES:${PN} += "${sysconfdir}/init.d/load_rvgc.sh "
+FILES:${PN} += "${sysconfdir}/modprobe.d/blacklist_rvgc.conf"
 

@@ -1,4 +1,4 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 SUPPORT_RVGC = " \
     file://0001-Added-rgvc-driver.patch \
@@ -69,6 +69,6 @@ SUPPORT_RVGC = " \
     file://0002-drm-rcar_rvgc-Fix-plane-reserve-to-set-fb.patch \
 "
 
-SRC_URI_append = " \
+SRC_URI:append = " \
     ${SUPPORT_RVGC} \
 "
