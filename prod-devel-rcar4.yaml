@@ -124,6 +124,8 @@ components:
         - [PREFERRED_VERSION_xen-tools, "4.17.0+git%"]
         - [PREFERRED_VERSION_xen, "4.17.0+git%"]
 
+        - [BBMASK:append, " meta-xt-remote-proc/recipes-kernel/linux"]
+
       layers:
         - "../meta-virtualization"
         - "../meta-openembedded/meta-oe"
@@ -135,6 +137,7 @@ components:
         - "../meta-xt-common/meta-xt-domx"
         - "../../layers/meta-xt-dom0-gen4"
         - "../../layers/meta-xt-domx-gen4"
+        - "../../layers/meta-xt-remote-proc"
       build_target: core-image-thin-initramfs
       external_src:
         domd: "%{YOCTOS_WORK_DIR}/%{DOMD_BUILD_DIR}/tmp/deploy/images/%{MACHINE}/"
@@ -186,6 +189,8 @@ components:
         - "../../layers/meta-xt-gles_common"
         - "../../layers/meta-xt-domd-gen4"
         - "../../layers/meta-xt-domx-gen4"
+        - "../../layers/meta-fastboot-poc"
+        - "../../layers/meta-xt-remote-proc"
       target_images:
         - "tmp/deploy/images/%{MACHINE}/Image"
         - "tmp/deploy/images/%{MACHINE}/rcar-image-adas-v4h.ext4"
@@ -216,6 +221,7 @@ components:
         # and xt-common provides 6.4 already. So we need this bbmask until upgrade to 6.4
         - [BBMASK:append, " meta-xt-common/meta-xt-domu/recipes-kernel/linux-libc-headers/"]
         - [EXTRA_IMAGEDEPENDS:remove, " arm-trusted-firmware"]
+        - [BBMASK:append, " meta-xt-remote-proc/recipes-extended/xen"]
 
       layers:
         - "../meta-openembedded/meta-oe"
@@ -226,6 +232,8 @@ components:
         - "../../layers/meta-xt-domx-gen4"
         - "../../layers/meta-xt-domu-gen4"
         - "../../layers/meta-xt-gles_common"
+        - "../../layers/meta-fastboot-poc"
+        - "../../layers/meta-xt-remote-proc"
       build_target: rcar-image-adas
       target_images:
         - "tmp/deploy/images/%{MACHINE}/Image"
