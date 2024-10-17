@@ -243,7 +243,7 @@ components:
     build-dir: "artifacts"
     builder:
       type: archive
-      name: "s4-%{MACHINE}-boot-artifacts.tar.bz"
+      name: "s4-%{MACHINE}-boot-artifacts.tar.bz2"
       items:
         - "%{YOCTOS_WORK_DIR}/%{DOM0_BUILD_DIR}/tmp/deploy/images/generic-armv8-xt/Image"
         - "%{YOCTOS_WORK_DIR}/%{DOM0_BUILD_DIR}/tmp/deploy/images/generic-armv8-xt/uInitramfs"
