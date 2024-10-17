@@ -1,4 +1,4 @@
-From 9252fd11e82c21f5e5481c44a709db94bdc22a2f Mon Sep 17 00:00:00 2001
+From 11cd02118056c585795bf7cd59cb5f22c9dc1e1f Mon Sep 17 00:00:00 2001
 From: Volodymyr Babchuk <volodymyr_babchuk@epam.com>
 Date: Wed, 9 Oct 2024 17:14:36 +0300
 Subject: [PATCH v2 21/23] drivers: add MISC_DEVICE support
@@ -39,7 +39,7 @@ index a5efa22714..972cbc1436 100644
  obj-$(CONFIG_HAS_PCI) += ats.o
 diff --git a/xen/drivers/passthrough/misc.c b/xen/drivers/passthrough/misc.c
 new file mode 100644
-index 0000000000..cf824ac6e2
+index 0000000000..2d6d85439d
 --- /dev/null
 +++ b/xen/drivers/passthrough/misc.c
 @@ -0,0 +1,40 @@
@@ -75,7 +75,7 @@ index 0000000000..cf824ac6e2
 +    dt_for_each_device_node(dt_host, np)
 +    {
 +        rc = device_init(np, DEVICE_MISC, NULL);
-+        if ( rc != -EBADF && rc != -ENODEV )
++        if (rc && rc != -EBADF && rc != -ENODEV )
 +            return rc;
 +    }
 +
