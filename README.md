@@ -21,12 +21,15 @@ This demo provides the following features:
 The buld was tested on the Ubuntu 20.04 LTS.
 Recommended hardware on the build host: intel i7, RAM 32GB, SSD with 150GB of free space.
 
-The demo is configured to be used with the [moulin build system](https://moulin.readthedocs.io/en/latest/).
+You may set up docker container and build product inside it.
+Please follow the [doc/Docker.md](doc/Docker.md). And proceed to the [Building](#building).
 
-Install moulin
+Or you may manually set build environment on the PC.
+In that case, install moulin
 ```
 pip3 install --user git+https://github.com/xen-troops/moulin
 ```
+See [moulin build system](https://moulin.readthedocs.io/en/latest/) documentation for details.
 
 Install ninja
 ```
@@ -34,8 +37,6 @@ apt install ninja-build
 ```
 
 Other packages may be required to be installed depending on the build host.
-
-[TODO] describe full list of packages
 
 ## Building
 
@@ -97,14 +98,15 @@ git clone git@github.com:xen-troops/rcar_flash.git
 For this demo we have used IPL from XOS v3.29 (look like).
 
 Turn off the board. Write down state of the SW1[5..8]. Set SW1[5..8] to `OFF`. Turn on the board.
+
 Flash all the loaders
 ```
 ./rcar_flash.py flash -f -b v4h -s /dev/ttyUSB0 -p <path to Renesas loaders for Whitehawk> all
 ```
 
-Flash the bl31 and u-boot from the product, and fastboot_demo_app_v4h.srec
+Flash the bl31 and u-boot from the product
 ```
-./rcar_flash.py flash -f -b v4h -s /dev/ttyUSB0 -p <path to generated loaders> bl31 u-boot dummy_rtos:fastboot_demo_app_v4h.srec
+./rcar_flash.py flash -f -b v4h -s /dev/ttyUSB0 -p <path to generated loaders> bl31 u-boot
 ```
 Where `<path to generated loaders>` is something like
 ```
@@ -115,7 +117,7 @@ Flash the fastboot_demo_app_v4h.srec
 ./rcar_flash.py flash -f -b v4h -s /dev/ttyUSB0 -p <path to fastboot demo app> dummy_rtos:fastboot_demo_app_v4h.srec
 ```
 
-Turn off the board. Set SW1[5..8] to state written down earlier. Turn on the board.
+Turn off the board. Set SW1[5..8] to the state written down earlier. Turn on the board.
 
 ### Flash the image and add test tools
 Boot the board using Renesas BSP by TFTP/NFS.
@@ -152,23 +154,313 @@ Login to the DomU
 xl console DomU
 ```
 
-### Testing GSX
+### PCI Passthrough
+```
+root@v4x:~# lspci
+00:00.0 PCI bridge: Renesas Technology Corp. Device 0030
+01:00.0 USB controller: ASMedia Technology Inc. ASM2142 USB 3.1 Host Controller
+```
+
+### USB
+```
+root@v4x:~# lsusb
+Bus 002 Device 002: ID 2109:0822 VIA Labs, Inc. USB3.1 Hub             
+Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 001 Device 003: ID 2357:0109 TP-Link TL-WN823N v2/v3 [Realtek RTL8192EU]
+Bus 001 Device 002: ID 2109:2822 VIA Labs, Inc. USB2.0 Hub             
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+```
+
+### GSX
+
 ```
 cd /home/root/tools/SV_imx623_20240228/
 ./SurroundViewDemo_wo_camera
 ```
 
-### Testing Camera
-NOTE1: the following steps requires modified `isp_rvas_mono_v4h2`
-to use GPIO-10 pin.
+You should see the rendered clip on the display and following logs in the console
+```
+# ./SurroundViewDemo_wo_camera 
+Opened '/dev/tty' for input
+ls: cannot access '/dev/input/by-path': No such file or directory
+initApplication
+initApplication end
+InitView
+Host library 'libEGL.so' loaded
+EGL Bindings: Successfully loaded library libEGL.so
 
-NOTE2: logs provided were obtained inside DomD,
-because right now camera doesn't work inside DomU.
-So, following info will be working after issues with the camera
-in DomU are resolved.
+Trying to create context for all configs.
+EGL context creation: EGL_KHR_create_context supported
+SUCCESS creating context! Reporting success. (Used config #0) .
+Maximum API level detected: OpenGL ES 3.1
+Requested minimum API level : OpenGL ES 3.1. Will actually create OpenGL ES 3.1 since it is supported.
+EGL context creation: EGL_KHR_create_context supported...
+Trying to get OpenGL ES version : 3.1
+EGL context creation: EGL_IMG_context_priority supported! Setting context HIGH priority (default)...
+EGL context creation: Number of EGL Configs found: 1
+Creating EGL context...
+EGL Initialized Successfully
+=== Final EGL Configuration ===
+        RedBits: 8
+        GreenBits: 8
+        BlueBits: 8
+        AlphaBits: 8
+        DepthBits: 24
+        StencilBits: 0
+        aaSamples: 0
+        FullScreen: true
+===============================
+[EglContext::init] Enabling Linear window backbuffer.
+Host library 'libGLESv2.so' loaded
+OpenGL ES Bindings: Successfully loaded library libGLESv2.so for OpenGL ES 2.0
+
+Renderer string: PowerVR A-Series AXM-8-256
+
+Host library 'libGLESv2.so' loaded
+OpenGL ES Bindings: Successfully loaded library libGLESv2.so for OpenGL ES 3.0
+
+Init Sampler
+Init UI
+ALPHA format texture detected in OpenGL ES 3+ context. Remapping to RED texture with swizzling (0,0,0,r) enabled in order to allow Texture Storage.
+Loading shader Common/ui.vsh | Common/ui.fsh
+Init tex
+Init vertex config
+ -basic
+ -textured
+ -Position
+ -vertex colour
+ -normal mapped
+Loading shaders
+Loading shader Common/TexturedShader.vsh | Common/SolidColour.fsh
+Loading shader Common/TexturedShader.vsh | Common/TexturedShader.fsh
+Loading shader Common/ui.vsh | Common/ui.fsh
+Loading shader Common/ui.vsh | Common/ui_solidColour.fsh
+ - Could not find uniform sTexture
+Loading shader Common/ui.vsh | Common/ui_cubemap.fsh
+Base shaders loaded
+Loading shader SurroundView/surround.vsh | SurroundView/surround.fsh
+ - Could not find uniform uChannel1
+ - Could not find uniform uChannel2
+ - Could not find uniform uDistortion0
+ - Could not find uniform uDistortion1
+ - Could not find uniform uCameraView0
+ - Could not find uniform uCameraView1
+ - Could not find uniform uUVTransform0
+ - Could not find uniform uUVTransform1
+ - Could not find uniform uBlendZone
+ - Could not find uniform uDetectionMap
+ - Could not find uniform uDetectionIntensity
+ - Could not find uniform uDetectionColour
+ - Could not find uniform uTime
+Loading calibration from SurroundView/smallChassis.xml
+Loading shader Convolution/cubemapConvolve.vsh | Convolution/cubemapConvolve.fsh
+Loading shader Car/Car.vsh | Car/Car.fsh
+ - Could not find uniform sAlbedo
+ - Could not find uniform sMasks
+Loading shader Car/Car.vsh | Car/Car.fsh
+Loading shader Car/Car.vsh | Car/Car.fsh
+ - Could not find uniform sMasks
+Loading shader Car/Ground.vsh | Car/Ground.fsh
+Loading shader Vision/nnaPanoramaInput.vsh | Vision/nnaPanoramaInput.fsh
+Rendering now
+```
+
+### Camera
+
+NOTE1: Camera can't be fully tested due to not resolved issues.
+So, logs are provided to show that applications are able
+to start but can't properly work with the camera.
+
+NOTE2: We have used hacked version of the `isp_rvas_mono_v4h2` with
+hard-coded GPIO-10 directly in binary due to minor hack of the strings.
+That was the only option that was successfully working with camera for us
+in DomD.
 
 ```
-cd /home/root/tools/
-./enable_uio.sh
-./isp_rvas_mono_v4h2_hacked -cimx623 -l1 -m0 -3
+# ./enable_uio.sh 
+[  196.982676] rcar-vin e6ef0000.video: Removing video0
+[  196.984762] rcar-vin e6ef1000.video: Removing video1
+[  196.984901] rcar-vin e6ef2000.video: Removing video2
+[  196.984988] rcar-vin e6ef3000.video: Removing video3
+[  196.985076] rcar-vin e6ef8000.video: Removing video4
+[  196.985149] rcar-vin e6ef9000.video: Removing video5
+[  196.985214] rcar-vin e6efa000.video: Removing video6
+[  196.985271] rcar-vin e6efb000.video: Removing video7
+
+root@v4x:~# ./isp_rvas_mono_v4h2_hacked -cimx623 -l1 -m0
+R-VAS Single camera streaming
+Using GMSL Link B
+================================================================
+ Active cam index 7  'IMX623':
+  Max 1936 x 1552, 60 fps, CFA 0, 6 modes
+Selected cam mode 0  1936x1552 12 bpp, RAW stride 2904  alloc size 4507072
+R_OSAL_MmngrGetHwAddr() failed with error 1
+Buffer allocation [FAIL] (error 12)
+Error: repeat_tsk():208 alloc_buffers error returned 12
+repeat thread ended with return value 12
+I2CRead8addr_8data_multi: Slave force failed for bus 1 dev 28
+r_rvas_serdes_des_pwr:221: DeSer instance 0 power down failed with 1
+I2CRead8addr_8data_multi: Slave force failed for bus 1 dev 2a
+r_rvas_serdes_des_pwr:221: DeSer instance 1 power down failed with 1
+Error: DeInitCisp():262 R_CISP_StopExecution returned 2002
+Error: DeInitCisp():265 R_CISP_Stop returned 2002
+Error: DeInitCisp():268 R_CISP_Quit returned 2002
+root@v4x:~# ./isp_rvas_mono_v4h2_hacked -cimx623 -l1 -m0 -3
+R-VAS Single camera streaming
+Using GMSL Link B
+Forcing GMSL2 Link speed 3G
+================================================================
+ Active cam index 7  'IMX623':
+  Max 1936 x 1552, 60 fps, CFA 0, 6 modes
+Selected cam mode 0  1936x1552 12 bpp, RAW stride 2904  alloc size 4507072
+R_OSAL_MmngrGetHwAddr() failed with error 1
+Buffer allocation [FAIL] (error 12)
+Error: repeat_tsk():208 alloc_buffers error returned 12
+repeat thread ended with return value 12
+I2CRead8addr_8data_multi: Slave force failed for bus 1 dev 28
+r_rvas_serdes_des_pwr:221: DeSer instance 0 power down failed with 1
+I2CRead8addr_8data_multi: Slave force failed for bus 1 dev 2a
+r_rvas_serdes_des_pwr:221: DeSer instance 1 power down failed with 1
+Error: DeInitCisp():262 R_CISP_StopExecution returned 2002
+Error: DeInitCisp():265 R_CISP_Stop returned 2002
+Error: DeInitCisp():268 R_CISP_Quit returned 2002
+```
+
+Following log of the `SurroundViewDemo_IMX623_rvas_v4h2` is intended to
+show that all OpenCV libraries are in place, and application starts
+successfully, but can't properly initialize cameras.
+```
+# ./SurroundViewDemo_IMX623_rvas_v4h2
+(XEN) grant_table.c:1879:d2v1 Expanding d2 grant table from 1 to 2 frames
+Opened '/dev/tty' for input
+ls: cannot access '/dev/input/by-path': No such file or directory
+initApplication
+initApplication end
+InitView
+Host library 'libEGL.so' loaded
+EGL Bindings: Successfully loaded library libEGL.so
+
+Trying to create context for all configs.
+EGL context creation: EGL_KHR_create_context supported
+SUCCESS creating context! Reporting success. (Used config #0) .
+Maximum API level detected: OpenGL ES 3.1
+Requested minimum API level : OpenGL ES 3.1. Will actually create OpenGL ES 3.1 since it is supported.
+EGL context creation: EGL_KHR_create_context supported...
+Trying to get OpenGL ES version : 3.1
+EGL context creation: EGL_IMG_context_priority supported! Setting context HIGH priority (default)...
+EGL context creation: Number of EGL Configs found: 1
+Creating EGL context...
+EGL Initialized Successfully
+=== Final EGL Configuration ===
+        RedBits: 8
+        GreenBits: 8
+        BlueBits: 8
+        AlphaBits: 8
+        DepthBits: 24
+        StencilBits: 8
+        aaSamples: 4
+        FullScreen: true
+===============================
+[EglContext::init] Enabling Linear window backbuffer.
+Host library 'libGLESv2.so' loaded
+OpenGL ES Bindings: Successfully loaded library libGLESv2.so for OpenGL ES 2.0
+
+Renderer string: PowerVR A-Series AXM-8-256
+
+Initialising the following cameras:
+-Front: /dev/video2
+-Right: /dev/video0
+-Back: /dev/video1                                                                           
+-Left: /dev/video3                                                                           
+Sensor connected to V4H/WhiteHawk with GMSL                                                  
+Using GMSL Link A                                                                            
+Using DeSerializer 0
+Forcing GMSL2 Link speed 3G
+Using Cam I2C address (8bit) 0x36
+Using GMSL Link B
+Using DeSerializer 0
+Forcing GMSL2 Link speed 3G
+Using Cam I2C address (8bit) 0x36
+Using GMSL Link C
+Using DeSerializer 0
+Forcing GMSL2 Link speed 3G
+Using Cam I2C address (8bit) 0x36
+Using GMSL Link D
+Using DeSerializer 0
+Forcing GMSL2 Link speed 3G
+Using Cam I2C address (8bit) 0x36
+================================================================
+ Active cam index 5  'IMX623':
+  Max 1936 x 1552, 60 fps, CFA 0, 21 modes
+Selected cam mode 8  1936x1552 30.0fps 12 bpp, aligned width 1952, RAW stride 3904
+================================================================
+ Active cam index 5  'IMX623':
+  Max 1936 x 1552, 60 fps, CFA 0, 21 modes
+Selected cam mode 8  1936x1552 30.0fps 12 bpp, aligned width 1952, RAW stride 3904
+================================================================
+ Active cam index 5  'IMX623':
+  Max 1936 x 1552, 60 fps, CFA 0, 21 modes
+Selected cam mode 8  1936x1552 30.0fps 12 bpp, aligned width 1952, RAW stride 3904
+================================================================
+ Active cam index 5  'IMX623':
+  Max 1936 x 1552, 60 fps, CFA 0, 21 modes
+Selected cam mode 8  1936x1552 30.0fps 12 bpp, aligned width 1952, RAW stride 3904
+R_OSAL_MmngrGetHwAddr() failed with error 1
+Error: memory_allocate_buffers():146 Memory allocation BUF_VIN_RAWX returned 1
+Error: repeat_tsk():192 memory_allocate_buffers returned 1
+
+```
+
+### Ethernet in the DomD
+Return from DomU back to Dom0 pressing `Ctrl+5` in DomU.
+
+Login to DomD as root
+```
+xl console DomD
+```
+
+Check that network interfaces are in place
+```
+v4x login: root
+root@v4x:~# ifconfig
+eth0      Link encap:Ethernet  HWaddr 2E:09:0A:0A:3C:24  
+          inet6 addr: fe80::2c09:aff:fe0a:3c24/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:42 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:28 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:3236 (3.1 KiB)  TX bytes:4890 (4.7 KiB)
+          Interrupt:94 
+
+eth1      Link encap:Ethernet  HWaddr 0E:CB:4D:FD:1D:1B  
+          UP BROADCAST MULTICAST  MTU:1500  Metric:1
+          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+          Interrupt:119 
+
+eth2      Link encap:Ethernet  HWaddr 02:41:E4:60:E0:79  
+          UP BROADCAST MULTICAST  MTU:1500  Metric:1
+          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+          Interrupt:144 
+
+lo        Link encap:Local Loopback  
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          inet6 addr: ::1/128 Scope:Host
+          UP LOOPBACK RUNNING  MTU:65536  Metric:1
+          RX packets:96 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:96 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:8467 (8.2 KiB)  TX bytes:8467 (8.2 KiB)
+
+xenbr0    Link encap:Ethernet  HWaddr 4A:C3:62:74:E4:D2  
+          UP BROADCAST MULTICAST  MTU:1500  Metric:1
+          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
 ```
