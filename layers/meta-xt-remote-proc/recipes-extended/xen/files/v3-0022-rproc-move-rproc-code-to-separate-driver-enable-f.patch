@@ -1,7 +1,7 @@
-From 5327f99f23eae3ee5759f06c6b0fb659025e5824 Mon Sep 17 00:00:00 2001
+From ee3a668768a1e37f45304ea3050107d8db6470aa Mon Sep 17 00:00:00 2001
 From: Volodymyr Babchuk <volodymyr_babchuk@epam.com>
 Date: Wed, 9 Oct 2024 17:44:11 +0300
-Subject: [PATCH v2 22/23] rproc: move rproc code to separate driver, enable
+Subject: [PATCH v3 22/23] rproc: move rproc code to separate driver, enable
  for gen4
 
 This patch introduces more generic rproc driver model, which is
@@ -13,8 +13,8 @@ Signed-off-by: Volodymyr Babchuk <volodymyr_babchuk@epam.com>
  xen/arch/arm/platforms/Kconfig                |   6 +
  xen/arch/arm/platforms/rcar4.c                |  52 ++
  xen/drivers/passthrough/arm/Makefile          |   1 +
- xen/drivers/passthrough/arm/plat-rcar/rproc.c | 652 ++++++++++++++++++
- 5 files changed, 733 insertions(+)
+ xen/drivers/passthrough/arm/plat-rcar/rproc.c | 662 ++++++++++++++++++
+ 5 files changed, 743 insertions(+)
  create mode 100644 xen/arch/arm/include/asm/platforms/rcar.h
  create mode 100644 xen/drivers/passthrough/arm/plat-rcar/rproc.c
 
@@ -147,10 +147,10 @@ index ed6565ec98..25cbef9ad0 100644
  obj-$(CONFIG_ARM_SMMU_V3) += smmu-v3.o
 diff --git a/xen/drivers/passthrough/arm/plat-rcar/rproc.c b/xen/drivers/passthrough/arm/plat-rcar/rproc.c
 new file mode 100644
-index 0000000000..150566b39e
+index 0000000000..3500c22f0e
 --- /dev/null
 +++ b/xen/drivers/passthrough/arm/plat-rcar/rproc.c
-@@ -0,0 +1,652 @@
+@@ -0,0 +1,662 @@
 +/*
 + * xen/drivers/passthrough/arm/plat-rcar/rproc.c
 + *
@@ -207,6 +207,9 @@ index 0000000000..150566b39e
 +                                                     0x202)
 +
 +#define RPROC_SMC_ERR_NOT_AVAILABLE      0x01
++
++/* Driver has used its parts of the config, and is happy */
++#define VIRTIO_CONFIG_S_DRIVER_OK   4
 +
 +struct mfis_data
 +{
@@ -729,6 +732,13 @@ index 0000000000..150566b39e
 +    rproc_data->channels[ch].vdev->vring[ring].notifyid = notify_id;
 +    rproc_data->channels[ch].vdev->vring[ring].da = pa;
 +    rproc_data->channels[ch].vring_pg[ring] = pg;
++
++    /* HACK: TODO: Add separate operation RPMSG_SMC_SET_VDEV_READY */
++    if (ring == 0)
++        rproc_data->channels[ch].vdev->status |= VIRTIO_CONFIG_S_DRIVER_OK;
++
++    /* TODO: Verify if we really need this */
++    clean_and_invalidate_dcache_va_range(rproc_data->base, PAGE_SIZE);
 +
 +    set_user_reg(regs, 0, ARM_SMCCC_SUCCESS);
 +

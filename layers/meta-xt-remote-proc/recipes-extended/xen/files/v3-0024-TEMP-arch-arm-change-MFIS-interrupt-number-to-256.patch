@@ -1,0 +1,30 @@
+From dd4426cc3bb69111f17d8709efa21a5d7d4daa12 Mon Sep 17 00:00:00 2001
+From: Volodymyr Babchuk <volodymyr_babchuk@epam.com>
+Date: Thu, 17 Oct 2024 22:20:34 +0300
+Subject: [PATCH v3 24/24] [TEMP] arch-arm: change MFIS interrupt number to 256
+
+This IRQ number is reserved on gen4
+
+TODO: Make it configurable (via toolstack, maybe?)
+
+Signed-off-by: Volodymyr Babchuk <volodymyr_babchuk@epam.com>
+---
+ xen/include/public/arch-arm.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/xen/include/public/arch-arm.h b/xen/include/public/arch-arm.h
+index 5ee99e2a3e..89c69c3c26 100644
+--- a/xen/include/public/arch-arm.h
++++ b/xen/include/public/arch-arm.h
+@@ -491,7 +491,7 @@ typedef uint64_t xen_callback_t;
+ #define GUEST_EVTCHN_PPI        31
+ 
+ #define GUEST_VPL011_SPI        32
+-#define GUEST_MFIS_SPI          265 /* "Reserved" on Gen3 */
++#define GUEST_MFIS_SPI          256 /* "Reserved" on Gen4 */
+ 
+ #define GUEST_VIRTIO_MMIO_SPI_FIRST   33
+ #define GUEST_VIRTIO_MMIO_SPI_LAST    43
+-- 
+2.46.2
+

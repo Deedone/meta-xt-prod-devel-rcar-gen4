@@ -22,6 +22,7 @@ SRC_URI:append = " \
     file://v2-0019-xsm-add-Flask-policy-for-enable_rproc.patch \
     file://v2-0020-destroy_domain-add-verification-of-NULL-to-avoid-.patch \
     file://v2-0021-drivers-add-MISC_DEVICE-support.patch \
-    file://v2-0022-rproc-move-rproc-code-to-separate-driver-enable-f.patch \
+    file://v3-0022-rproc-move-rproc-code-to-separate-driver-enable-f.patch \
     file://v2-0023-rcar3-delete-rcar3-specific-code.patch \
+    file://v3-0024-TEMP-arch-arm-change-MFIS-interrupt-number-to-256.patch \
 "
