@@ -50,12 +50,13 @@ created by the ninja.
 ```
 git clone https://partnergitlab.renesas.solutions/v4h-fusion-poc/meta-xt-prod-v4h-demo.git
 cd meta-xt-prod-v4h-demo
+export WORKDIR=`pwd`
 ```
 
 Put DDK packages inside
 ```
-cp <some_path>/GSX_KM_V4H_DDK23.3_v2.tar.bz2 .
-cp <some_path>/r8a779g0_linux_gsx_binaries_gles_vz_DDK23.3_v2.tar.bz2 .
+cp <some_path>/GSX_KM_V4H_DDK23.3_v2.tar.bz2 ${WORKDIR}
+cp <some_path>/r8a779g0_linux_gsx_binaries_gles_vz_DDK23.3_v2.tar.bz2 ${WORKDIR}
 ```
 
 Run moulin to create build.ninja file
@@ -106,15 +107,12 @@ Flash all the loaders
 
 Flash the bl31 and u-boot from the product
 ```
-./rcar_flash.py flash -f -b v4h -s /dev/ttyUSB0 -p <path to generated loaders> bl31 u-boot
+./rcar_flash.py flash -f -b v4h -s /dev/ttyUSB0 -p ${WORKDIR}/yocto/build-domd/tmp/deploy/images/whitehawk bl31 u-boot
 ```
-Where `<path to generated loaders>` is something like
-```
-<root of your build>/yocto/build-domd/tmp/deploy/images/whitehawk
-```
+
 Flash the fastboot_demo_app_v4h.srec
 ```
-./rcar_flash.py flash -f -b v4h -s /dev/ttyUSB0 -p <path to fastboot demo app> dummy_rtos:fastboot_demo_app_v4h.srec
+./rcar_flash.py flash -f -b v4h -s /dev/ttyUSB0 -p ${WORKDIR}/firmware dummy_rtos:fastboot_demo_app_v4h.srec
 ```
 
 Turn off the board. Set SW1[5..8] to the state written down earlier. Turn on the board.
