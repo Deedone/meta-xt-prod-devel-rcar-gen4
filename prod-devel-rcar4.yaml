@@ -91,6 +91,8 @@ common_data:
     - [BBMASK:append, "  meta-openembedded/meta-oe/recipes-support/opencv"]
     # we have to use tbb 2020.2 instead of 2021.5 for opencv 4.1
     - [BBMASK:append, "  meta-openembedded/meta-oe/recipes-support/tbb"]
+    - [BBMASK:append, "  meta-fastboot-poc/recipes-example"]
+    - [IMAGE_INSTALL:remove, "drm-color-bar"]
 
 components:
   dom0:
