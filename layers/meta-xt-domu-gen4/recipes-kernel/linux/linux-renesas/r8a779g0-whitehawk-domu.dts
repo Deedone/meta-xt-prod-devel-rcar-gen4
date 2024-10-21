@@ -5,7 +5,7 @@
 #include <dt-bindings/media/r8a779g0-csi2.h>
 #include <dt-bindings/ipmmu/rcar-ipmmu.h>
 #define PHANDLE_GIC (65000)
-#define PHANDLE_ITS (64999)
+#define PHANDLE_ITS (65002)
 
 / {
 
