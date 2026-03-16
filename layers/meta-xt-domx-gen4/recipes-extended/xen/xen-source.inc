@@ -1,4 +1,5 @@
-SRC_URI = "git://github.com/xen-troops/xen.git;protocol=https;branch=spider-master"
-XEN_REL = "4.17"
-XEN_REV = "8711910a8fb66eb454172a9e6427aaf62bfc3a80"
+SRC_URI = "git://github.com/Deedone/xen.git;protocol=https;branch=sriov-support-v2"
+XEN_REL = "4.21"
+XEN_REV = "${AUTOREV}"
 
+LIC_FILES_CHKSUM ?= "file://COPYING;md5=d1a1e216f80b6d8da95fec897d0dbec9"
